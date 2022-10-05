@@ -162,6 +162,7 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 			}
 			yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 		}
+		if(!(boat.getVelocity().length() >= 0.02)) return;
 		player.setYaw(yaw);
 		// save pos and yaw
 		previousYaw = yaw;
@@ -170,9 +171,11 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 
 	@Override
 	public boolean onLookDirectionChanging(double dx, double dy) {
-		if (getConfig().isBoatMode()) {
-			ClientPlayerEntity player = MinecraftClient.getInstance().player;
-			if (player != null && player.getVehicle() instanceof BoatEntity && (dx != 0 || getConfig().shouldFixPitch() && dy != 0)) {
+		ClientPlayerEntity player = MinecraftClient.getInstance().player;
+		assert player != null;
+		if(!(player.getVehicle() instanceof BoatEntity b)) return false;
+		if (getConfig().isBoatMode() && b.getVelocity().length() >= 0.02) {
+			if (dx != 0 || getConfig().shouldFixPitch() && dy != 0) {
 				// prevent horizontal camera movement and cancel camera change by returning true
 				// prevent vertical movement as well if configured
 				player.changeLookDirection(0, getConfig().shouldFixPitch() ? 0 : dy);

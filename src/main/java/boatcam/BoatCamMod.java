@@ -32,6 +32,8 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 	// key binds
 	private final KeyBinding TOGGLE = new KeyBinding("key.boatcam.toggle", KEYSYM, GLFW_KEY_B, "BoatCam");
 	private final KeyBinding LOOK_BEHIND = new KeyBinding("key.boatcam.lookbehind", KEYSYM, -1, "BoatCam");
+	private final KeyBinding LOOK_LEFT = new KeyBinding("key.boatcam.lookleft", KEYSYM, -1, "BoatCam");
+	private final KeyBinding LOOK_RIGHT = new KeyBinding("key.boatcam.lookright", KEYSYM, -1, "BoatCam");
 
 	// things to remember temporarily
 	private Perspective perspective = null;
@@ -46,6 +48,8 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		AutoConfig.register(BoatCamConfig.class, JanksonConfigSerializer::new);
 		KeyBindingHelper.registerKeyBinding(TOGGLE);
 		KeyBindingHelper.registerKeyBinding(LOOK_BEHIND);
+		KeyBindingHelper.registerKeyBinding(LOOK_LEFT);
+		KeyBindingHelper.registerKeyBinding(LOOK_RIGHT);
 		ClientTickEvents.START_WORLD_TICK.register(this::onClientEndWorldTick);
 		LookDirectionChangingEvent.EVENT.register(this);
 		AutoConfig.getGuiRegistry(BoatCamConfig.class).registerPredicateTransformer(
@@ -105,24 +109,6 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 					case THIRD_PERSON -> client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
 				}
 			}
-			// if pressed state changed
-			if (LOOK_BEHIND.isPressed() != lookingBehind) {
-				// save state
-				lookingBehind = LOOK_BEHIND.isPressed();
-				// handle change
-				invertPitch();
-				if (lookingBehind) {
-					// set look back perspective
-					client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
-				} else {
-					// reset perspective
-					switch (getConfig().getPerspective()) {
-						case FIRST_PERSON -> client.options.setPerspective(Perspective.FIRST_PERSON);
-						case THIRD_PERSON -> client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
-						default -> resetPerspective();
-					}
-				}
-			}
 		} else {
 			// first tick after disabling boat mode or leaving boat
 			if (perspective != null) {
@@ -131,6 +117,25 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 				if (lookingBehind) {
 					invertPitch();
 					lookingBehind = false;
+				}
+			}
+		}
+
+		// if pressed state changed
+		if (LOOK_BEHIND.isPressed() != lookingBehind) {
+			// save state
+			lookingBehind = LOOK_BEHIND.isPressed();
+			// handle change
+			invertPitch();
+			if (lookingBehind) {
+				// set look back perspective
+				client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+			} else {
+				// reset perspective
+				switch (getConfig().getPerspective()) {
+					case FIRST_PERSON -> client.options.setPerspective(Perspective.FIRST_PERSON);
+					case THIRD_PERSON -> client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+					default -> resetPerspective();
 				}
 			}
 		}
@@ -153,12 +158,18 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		// yaw calculations
 		float yaw = boat.getYaw();
 		if (boatPos != null) {
-			double dz = boat.getZ() - boatPos.z, dx = boat.getX() - boatPos.x;
-			if (dx != 0 || dz != 0) {
-				float vel = (float) hypot(dz, dx);
-				float direction = (float) toDegrees(atan2(dz, dx)) - 90;
-				float t = min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-				yaw = AngleUtil.lerp(t, yaw, direction);
+			if (LOOK_LEFT.isPressed()) {
+				yaw -= 90f;
+			} else if (LOOK_RIGHT.isPressed()) {
+				yaw += 90;
+			} else {
+				double dz = boat.getZ() - boatPos.z, dx = boat.getX() - boatPos.x;
+				if (dx != 0 || dz != 0) {
+					float vel = (float) hypot(dz, dx);
+					float direction = (float) toDegrees(atan2(dz, dx)) - 90;
+					float t = min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
+					yaw = AngleUtil.lerp(t, yaw, direction);
+				}
 			}
 			yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 		}

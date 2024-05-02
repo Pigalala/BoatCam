@@ -37,6 +37,7 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 
 	// things to remember temporarily
 	private Perspective perspective = null;
+	private Perspective previousPerspective = null;
 	private Vec3d boatPos = null;
 	private float previousYaw;
 
@@ -129,14 +130,12 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 			invertPitch();
 			if (lookingBehind) {
 				// set look back perspective
+				previousPerspective = client.options.getPerspective();
 				client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
 			} else {
 				// reset perspective
-				switch (getConfig().getPerspective()) {
-					case FIRST_PERSON -> client.options.setPerspective(Perspective.FIRST_PERSON);
-					case THIRD_PERSON -> client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
-					default -> resetPerspective();
-				}
+				client.options.setPerspective(previousPerspective);
+				perspective = null;
 			}
 		}
 	}
@@ -160,8 +159,10 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		if (boatPos != null) {
 			if (LOOK_LEFT.isPressed()) {
 				yaw -= 90f;
+				player.setYaw(yaw);
 			} else if (LOOK_RIGHT.isPressed()) {
 				yaw += 90;
+				player.setYaw(yaw);
 			} else {
 				double dz = boat.getZ() - boatPos.z, dx = boat.getX() - boatPos.x;
 				if (dx != 0 || dz != 0) {

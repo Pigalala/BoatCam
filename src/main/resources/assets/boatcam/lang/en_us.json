@@ -1,6 +1,8 @@
 {
   "key.boatcam.toggle": "Toggle",
   "key.boatcam.lookbehind": "Look behind",
+  "key.boatcam.lookleft": "Look Left",
+  "key.boatcam.lookright": "Look Right",
   "text.autoconfig.boatcam.title": "BoatCam Config",
   "text.autoconfig.boatcam.option.boatMode": "BoatMode",
   "text.autoconfig.boatcam.option.smoothness": "Smoothness",

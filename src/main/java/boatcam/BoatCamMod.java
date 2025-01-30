@@ -15,7 +15,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
@@ -92,7 +92,7 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		}
 		// camera logic
 		assert client.player != null;
-		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof BoatEntity boat) {
+		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
 			calculateYaw(client.player, boat);
 			// first tick riding in boat mode
 			if (perspective == null) {
@@ -153,7 +153,7 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		}
 	}
 
-	private void calculateYaw(ClientPlayerEntity player, BoatEntity boat) {
+	private void calculateYaw(ClientPlayerEntity player, AbstractBoatEntity boat) {
 		// yaw calculations
 		float yaw = boat.getYaw();
 		if (boatPos != null) {
@@ -185,7 +185,7 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 	public boolean onLookDirectionChanging(double dx, double dy) {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
 		assert player != null;
-		if(!(player.getVehicle() instanceof BoatEntity b)) return false;
+		if(!(player.getVehicle() instanceof AbstractBoatEntity b)) return false;
 		if (getConfig().isBoatMode() && b.getVelocity().length() >= 0.02) {
 			if (dx != 0 || getConfig().shouldFixPitch() && dy != 0) {
 				// prevent horizontal camera movement and cancel camera change by returning true

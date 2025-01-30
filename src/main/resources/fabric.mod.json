@@ -27,13 +27,13 @@
     "boatcam.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.21",
-    "fabric": "*",
-    "minecraft": "^1.20",
-    "java": ">=17",
-    "cloth-config2": ">=11.0.99"
+    "fabricloader": ">=0.16.10",
+    "fabric": "0.114.0+1.21.3",
+    "minecraft": "^1.21",
+    "java": ">=21",
+    "cloth-config2": ">=16.0.141"
   },
   "suggests": {
-    "modmenu": ">=7.0.1"
+    "modmenu": ">=12.0.0"
   }
 }

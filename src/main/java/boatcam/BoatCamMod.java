@@ -174,9 +174,11 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 			}
 			yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 		}
-		if(!(boat.getVelocity().length() >= 0.02)) return;
-		player.setYaw(yaw);
-		// save pos and yaw
+
+		// Only update player yaw only if they are moving, otherwise boatcam would be too silly :P
+		if (boat.getVelocity().length() >= 0.02) {
+			player.setYaw(yaw);
+		}
 		previousYaw = yaw;
 		boatPos = boat.getPos();
 	}

@@ -1,6 +1,8 @@
 # BoatCam
 BoatCam is a mod which adds some useful and customizable tweaks to the player camera for a smooth boat racing experience.
 
+This mod was originally created by Bstn1802, and is being maintained by Pigalala in this repository.
+
 ## Features
 *All features are toggleable, and a master toggle is available.*
 - Camera yaw is automatically set, depending on your boat's direction and velocity.

@@ -3,16 +3,17 @@
   "id": "boatcam",
   "version": "${version}",
   "name": "BoatCam",
-  "description": "Some nice tweaks to the boat and player camera for way cooler drifts on ice :D",
+  "description": " BoatCam is a mod which adds some useful tweaks to the player camera for smooth drifting on ice.",
   "authors": [
-    "Bstn1802"
+    "Bstn1802",
+    "Pigalala"
   ],
   "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/boatcam",
-    "sources": "https://github.com/Bstn1802/BoatCam",
-    "issues": "https://github.com/Bstn1802/BoatCam/issues"
+    "homepage": "https://modrinth.com/mod/boatcam",
+    "sources": "https://github.com/Pigalala/BoatCam",
+    "issues": "https://github.com/Pigalala/BoatCam/issues"
   },
-  "license": "CC0-1.0",
+  "license": "GPL-3.0",
   "icon": "assets/boatcam/icon.png",
   "environment": "client",
   "entrypoints": {

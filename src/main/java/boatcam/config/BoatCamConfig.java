@@ -11,7 +11,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 public final class BoatCamConfig implements ConfigData {
 
     @Comment("Whether the camera should be controlled by this mod or not.\nNOTE: This setting can be toggled using a key bind.")
-    private boolean boatMode = false;
+    private boolean boatMode = true;
 
     @Comment("Frees camera movement when not moving in a boat.")
     private boolean stationaryLookAround = true;

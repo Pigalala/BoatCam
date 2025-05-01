@@ -1,20 +1,18 @@
-# BoatCam [1.18.1][Fabric][Client]
-### Description
-Some nice tweaks to the boat and player camera for way cooler drifts on ice :D
+# BoatCam
+BoatCam is a mod which adds some useful and customizable tweaks to the player camera for a smooth boat racing experience.
 
-### Features
-- Fixes the camera to a certain horizontal angle depending on the boat's direction and velocity
-- Configurable smoothness of the camera
-- Automatically go into first/third person view when entering a boat
-- Can be toggled using a key bind (boat mode/normal mode)
-- Another key bind allows you to look behind while the key bind is pressed
-- The camera's vertical angle can be fixed to a configurable angle as well
-- Graphical user interface to configure the mod when using [ModMenu](https://www.curseforge.com/minecraft/mc-mods/modmenu)
+## Features
+*All features are toggleable, and a master toggle is available.*
+- Camera yaw is automatically set, depending on your boat's direction and velocity.
+- Configurable camera smoothness.
+- Automatic perspective change when entering a boat.
+- Keybind to look backwards
+- Keybind to look left/right
+- Configurable fixed pitch
+- Bypass vanilla yaw restriction
 
-### Requirements
-This mod requires [ClothConfig](https://www.curseforge.com/minecraft/mc-mods/cloth-config/files) and [ModMenu](https://www.curseforge.com/minecraft/mc-mods/modmenu) is highly recommended.
-
-### Installation
-1. Download and install [Fabric](https://fabricmc.net/use/installer/) for the latest client version
-2. Download the [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api) mod and put the .jar file into the mods folder
-3. Download [ClothConfig](https://www.curseforge.com/minecraft/mc-mods/cloth-config/files), [ModMenu](https://www.curseforge.com/minecraft/mc-mods/modmenu) (optional) and this mod and put the .jar files into the same folder
+## Dependencies
+These mods must be installed in order for this mod to work.
+- [Fabric API](https://modrinth.com/mod/fabric-api)
+- [Cloth Config](https://modrinth.com/mod/cloth-config)
+- [Mod Menu](https://modrinth.com/mod/modmenu)

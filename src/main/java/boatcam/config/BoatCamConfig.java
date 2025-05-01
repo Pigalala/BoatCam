@@ -5,6 +5,13 @@ import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry.BoundedDiscrete;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
+import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
+import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import me.shedaniel.clothconfig2.gui.entries.DropdownBoxEntry;
+import net.minecraft.text.Text;
+
+import java.lang.reflect.Field;
+import java.util.List;
 
 @SuppressWarnings({ "unused", "FieldCanBeLocal", "FieldMayBeFinal" })
 @Config(name = "boatcam")
@@ -33,16 +40,12 @@ public final class BoatCamConfig implements ConfigData {
     @Comment("Disables the turn limit in a boat.\nNOTE: The turn limit is always disabled in boat mode!")
     private boolean turnLimitDisabled = false;
 
-    private BoatCamConfig() { }
+    private BoatCamConfig() {}
 
     @Override
     public void validatePostLoad() {
         if(smoothness < 1 || smoothness > 100) smoothness = 50;
         if(perspective == null) perspective = Perspective.NONE;
-    }
-
-    public static BoatCamConfig getConfig() {
-        return AutoConfig.getConfigHolder(BoatCamConfig.class).get();
     }
 
     public static void saveConfig() {
@@ -83,6 +86,41 @@ public final class BoatCamConfig implements ConfigData {
     }
 
     public enum Perspective {
-        NONE, FIRST_PERSON, THIRD_PERSON
+        NONE, FIRST_PERSON, THIRD_PERSON;
+    }
+
+    public static BoatCamConfig getConfig() {
+        return AutoConfig.getConfigHolder(BoatCamConfig.class).get();
+    }
+
+    public static void registerPerspectiveConfiguration() {
+        AutoConfig.getGuiRegistry(BoatCamConfig.class).registerPredicateTransformer(
+                (guis, s, f, c, d, g) -> dropdownToEnumList(guis, f),
+                field -> BoatCamConfig.Perspective.class.isAssignableFrom(field.getType())
+        );
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static List<AbstractConfigListEntry> dropdownToEnumList(List<AbstractConfigListEntry> guis, Field field) {
+        return guis.stream()
+                .filter(DropdownBoxEntry.class::isInstance)
+                .map(DropdownBoxEntry.class::cast)
+                // transform dropdown menu into enum list
+                .map(dropdown -> ConfigEntryBuilder.create()
+                        .startEnumSelector(dropdown.getFieldName(), BoatCamConfig.Perspective.class, (BoatCamConfig.Perspective) dropdown.getValue())
+                        .setDefaultValue((BoatCamConfig.Perspective) dropdown.getDefaultValue().orElse(null))
+                        .setSaveConsumer(p -> {
+                            try {
+                                field.set(getConfig(), p);
+                            } catch (IllegalAccessException ignored) {}
+                        })
+                        .setEnumNameProvider(perspective -> switch ((BoatCamConfig.Perspective) perspective) {
+                            case FIRST_PERSON -> Text.translatable("text.autoconfig.boatcam.option.perspective.firstPerson");
+                            case THIRD_PERSON -> Text.translatable("text.autoconfig.boatcam.option.perspective.thirdPerson");
+                            case NONE -> Text.translatable("text.autoconfig.boatcam.option.perspective.none");
+                        })
+                        .build())
+                .map(AbstractConfigListEntry.class::cast)
+                .toList();
     }
 }

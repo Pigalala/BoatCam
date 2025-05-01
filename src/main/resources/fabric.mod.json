@@ -17,7 +17,7 @@
   "icon": "assets/boatcam/icon.png",
   "environment": "client",
   "entrypoints": {
-    "main": [
+    "client": [
       "boatcam.BoatCamMod"
     ],
     "modmenu": [

@@ -1,13 +1,9 @@
 package boatcam;
 
 import boatcam.config.BoatCamConfig;
-import boatcam.event.LookDirectionChangingEvent;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import me.shedaniel.clothconfig2.gui.entries.DropdownBoxEntry;
-import net.fabricmc.api.ModInitializer;
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
@@ -19,83 +15,58 @@ import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
-import java.lang.reflect.Field;
-import java.util.List;
-
 import static boatcam.config.BoatCamConfig.getConfig;
 import static java.lang.Math.*;
 import static net.minecraft.client.util.InputUtil.Type.KEYSYM;
 import static net.minecraft.util.Formatting.GREEN;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_B;
 
-public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
-	// key binds
+public final class BoatCamMod implements ClientModInitializer {
+
+	private static BoatCamMod INSTANCE;
+
 	private final KeyBinding TOGGLE = new KeyBinding("key.boatcam.toggle", KEYSYM, GLFW_KEY_B, "BoatCam");
 	private final KeyBinding LOOK_BEHIND = new KeyBinding("key.boatcam.lookbehind", KEYSYM, -1, "BoatCam");
 	private final KeyBinding LOOK_LEFT = new KeyBinding("key.boatcam.lookleft", KEYSYM, -1, "BoatCam");
 	private final KeyBinding LOOK_RIGHT = new KeyBinding("key.boatcam.lookright", KEYSYM, -1, "BoatCam");
 
-	// things to remember temporarily
 	private Perspective perspective = null;
 	private Perspective previousPerspective = null;
 	private Vec3d boatPos = null;
 	private float previousYaw;
 	private boolean unfixedCameraActive = false;
-
-	// states
 	private boolean lookingBehind = false;
 
+	public BoatCamMod() {
+		INSTANCE = this;
+	}
+
 	@Override
-	public void onInitialize() {
+	public void onInitializeClient() {
 		AutoConfig.register(BoatCamConfig.class, JanksonConfigSerializer::new);
+		BoatCamConfig.registerPerspectiveConfiguration();
+
 		KeyBindingHelper.registerKeyBinding(TOGGLE);
 		KeyBindingHelper.registerKeyBinding(LOOK_BEHIND);
 		KeyBindingHelper.registerKeyBinding(LOOK_LEFT);
 		KeyBindingHelper.registerKeyBinding(LOOK_RIGHT);
-		ClientTickEvents.START_WORLD_TICK.register(this::onClientEndWorldTick);
-		LookDirectionChangingEvent.EVENT.register(this);
-		AutoConfig.getGuiRegistry(BoatCamConfig.class).registerPredicateTransformer(
-			(guis, s, f, c, d, g) -> dropdownToEnumList(guis, f),
-			field -> BoatCamConfig.Perspective.class.isAssignableFrom(field.getType())
-		);
+
+		ClientTickEvents.START_WORLD_TICK.register(this::onClientStartWorldTick);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private List<AbstractConfigListEntry> dropdownToEnumList(List<AbstractConfigListEntry> guis, Field field) {
-		return guis.stream()
-			.filter(DropdownBoxEntry.class::isInstance)
-			.map(DropdownBoxEntry.class::cast)
-			// transform dropdown menu into enum list
-			.map(dropdown -> ConfigEntryBuilder.create()
-				.startEnumSelector(dropdown.getFieldName(), BoatCamConfig.Perspective.class, (BoatCamConfig.Perspective) dropdown.getValue())
-				.setDefaultValue((BoatCamConfig.Perspective) dropdown.getDefaultValue().orElse(null))
-				.setSaveConsumer(p -> {
-					try {
-						field.set(getConfig(), p);
-					} catch (IllegalAccessException ignored) { }
-				})
-				.setEnumNameProvider(perspective -> switch ((BoatCamConfig.Perspective) perspective) {
-					case FIRST_PERSON -> Text.translatable("text.autoconfig.boatcam.option.perspective.firstPerson");
-					case THIRD_PERSON -> Text.translatable("text.autoconfig.boatcam.option.perspective.thirdPerson");
-					case NONE -> Text.translatable("text.autoconfig.boatcam.option.perspective.none");
-				})
-				.build())
-			.map(AbstractConfigListEntry.class::cast)
-			.toList();
-	}
-
-	private void onClientEndWorldTick(ClientWorld world) {
+	private void onClientStartWorldTick(ClientWorld world) {
 		MinecraftClient client = MinecraftClient.getInstance();
-		// key bind logic
+
 		if (TOGGLE.wasPressed()) {
 			getConfig().toggleBoatMode();
 			client.inGameHud.setOverlayMessage(Text.literal(getConfig().isBoatMode() ? "Boat mode" : "Normal mode").styled(s -> s.withColor(GREEN)), false);
 		}
-		// camera logic
+
 		assert client.player != null;
 		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
 			calculateYaw(client.player, boat);
 
+			// Was stationary but now moving and vice versa
 			if (unfixedCameraActive != shouldOverrideCamera(boat)) {
 				unfixedCameraActive = !unfixedCameraActive;
 				if (getConfig().shouldFixPitch()) {
@@ -133,16 +104,13 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 
 		// if pressed state changed
 		if (LOOK_BEHIND.isPressed() != lookingBehind) {
-			// save state
 			lookingBehind = LOOK_BEHIND.isPressed();
-			// handle change
 			invertPitch();
+
 			if (lookingBehind) {
-				// set look back perspective
 				previousPerspective = client.options.getPerspective();
 				client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
 			} else {
-				// reset perspective
 				client.options.setPerspective(previousPerspective);
 				perspective = null;
 			}
@@ -155,15 +123,13 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		player.setPitch(-player.getPitch());
 	}
 
+	// Assumes perspective is not null
 	private void resetPerspective() {
-		if (perspective != null) {
-			MinecraftClient.getInstance().options.setPerspective(perspective);
-			perspective = null;
-		}
+		MinecraftClient.getInstance().options.setPerspective(perspective);
+		perspective = null;
 	}
 
 	private void calculateYaw(ClientPlayerEntity player, AbstractBoatEntity boat) {
-		// yaw calculations
 		float yaw = boat.getYaw();
 		if (boatPos != null) {
 			if (LOOK_LEFT.isPressed()) {
@@ -192,23 +158,29 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		boatPos = boat.getPos();
 	}
 
-	@Override
+	// If returns true, look direction change should be cancelled
 	public boolean onLookDirectionChanging(double dx, double dy) {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
 		assert player != null;
-		if(!(player.getVehicle() instanceof AbstractBoatEntity b)) return false;
+		if (!(player.getVehicle() instanceof AbstractBoatEntity b)) {
+			return false;
+		}
+
 		if (getConfig().isBoatMode() && shouldOverrideCamera(b)) {
 			if (dx != 0 || getConfig().shouldFixPitch() && dy != 0) {
-				// prevent horizontal camera movement and cancel camera change by returning true
-				// prevent vertical movement as well if configured
 				player.changeLookDirection(0, getConfig().shouldFixPitch() ? 0 : dy);
 				return true;
 			}
 		}
+
 		return false;
 	}
 
 	boolean shouldOverrideCamera(AbstractBoatEntity boat) {
 		return !BoatCamConfig.getConfig().isStationaryLookAround() || boat.getVelocity().length() >= 0.02;
+	}
+
+	public static BoatCamMod instance() {
+		return INSTANCE;
 	}
 }

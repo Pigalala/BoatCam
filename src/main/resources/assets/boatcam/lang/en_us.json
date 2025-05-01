@@ -5,6 +5,7 @@
   "key.boatcam.lookright": "Look Right",
   "text.autoconfig.boatcam.title": "BoatCam Config",
   "text.autoconfig.boatcam.option.boatMode": "BoatMode",
+  "text.autoconfig.boatcam.option.stationaryLookAround": "Stationary Look Around",
   "text.autoconfig.boatcam.option.smoothness": "Smoothness",
   "text.autoconfig.boatcam.option.perspective": "Perspective",
   "text.autoconfig.boatcam.option.perspective.none": "None",

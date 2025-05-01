@@ -40,6 +40,7 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 	private Perspective previousPerspective = null;
 	private Vec3d boatPos = null;
 	private float previousYaw;
+	private boolean unfixedCameraActive = false;
 
 	// states
 	private boolean lookingBehind = false;
@@ -94,6 +95,14 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		assert client.player != null;
 		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
 			calculateYaw(client.player, boat);
+
+			if (unfixedCameraActive != shouldOverrideCamera(boat)) {
+				unfixedCameraActive = !unfixedCameraActive;
+				if (getConfig().shouldFixPitch()) {
+					client.player.setPitch(getConfig().getPitch());
+				}
+			}
+
 			// first tick riding in boat mode
 			if (perspective == null) {
 				// fix pitch if configured
@@ -175,10 +184,10 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 			yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 		}
 
-		// Only update player yaw only if they are moving, otherwise boatcam would be too silly :P
-		if (boat.getVelocity().length() >= 0.02) {
+		if (shouldOverrideCamera(boat)) {
 			player.setYaw(yaw);
 		}
+
 		previousYaw = yaw;
 		boatPos = boat.getPos();
 	}
@@ -188,7 +197,7 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
 		assert player != null;
 		if(!(player.getVehicle() instanceof AbstractBoatEntity b)) return false;
-		if (getConfig().isBoatMode() && b.getVelocity().length() >= 0.02) {
+		if (getConfig().isBoatMode() && shouldOverrideCamera(b)) {
 			if (dx != 0 || getConfig().shouldFixPitch() && dy != 0) {
 				// prevent horizontal camera movement and cancel camera change by returning true
 				// prevent vertical movement as well if configured
@@ -197,5 +206,9 @@ public class BoatCamMod implements ModInitializer, LookDirectionChangingEvent {
 			}
 		}
 		return false;
+	}
+
+	boolean shouldOverrideCamera(AbstractBoatEntity boat) {
+		return !BoatCamConfig.getConfig().isStationaryLookAround() || boat.getVelocity().length() >= 0.02;
 	}
 }

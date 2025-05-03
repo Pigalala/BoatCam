@@ -132,20 +132,22 @@ public final class BoatCamMod implements ClientModInitializer {
 	private void calculateYaw(ClientPlayerEntity player, AbstractBoatEntity boat) {
 		float yaw = boat.getYaw();
 		if (boatPos != null) {
+			float directionOffset = 0f;
 			if (LOOK_LEFT.isPressed()) {
 				yaw -= 90f;
-				player.setYaw(yaw);
+				directionOffset = -90f;
 			} else if (LOOK_RIGHT.isPressed()) {
 				yaw += 90;
-				player.setYaw(yaw);
-			} else {
-				double dz = boat.getZ() - boatPos.z, dx = boat.getX() - boatPos.x;
-				if (dx != 0 || dz != 0) {
-					float vel = (float) hypot(dz, dx);
-					float direction = (float) toDegrees(atan2(dz, dx)) - 90;
-					float t = min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-					yaw = AngleUtil.lerp(t, yaw, direction);
-				}
+				directionOffset = 90f;
+			}
+
+			double dx = boat.getX() - boatPos.x;
+			double dz = boat.getZ() - boatPos.z;
+			if (dx != 0 || dz != 0) {
+				float vel = (float) hypot(dz, dx);
+				float direction = (float) toDegrees(atan2(dz, dx)) - 90;
+				float t = min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
+				yaw = AngleUtil.lerp(t, yaw, direction + directionOffset);
 			}
 			yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 		}
@@ -177,7 +179,7 @@ public final class BoatCamMod implements ClientModInitializer {
 	}
 
 	boolean shouldOverrideCamera(AbstractBoatEntity boat) {
-		return !BoatCamConfig.getConfig().isStationaryLookAround() || boat.getVelocity().length() >= 0.02;
+		return !BoatCamConfig.getConfig().isStationaryLookAround() || LOOK_LEFT.isPressed() || LOOK_RIGHT.isPressed() || boat.getVelocity().lengthSquared() >= 0.02 * 0.02;
 	}
 
 	public static BoatCamMod instance() {

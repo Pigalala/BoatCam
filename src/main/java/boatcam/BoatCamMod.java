@@ -62,7 +62,6 @@ public final class BoatCamMod implements ClientModInitializer {
 			client.inGameHud.setOverlayMessage(Text.literal(getConfig().isBoatMode() ? "Boat mode" : "Normal mode").styled(s -> s.withColor(GREEN)), false);
 		}
 
-		assert client.player != null;
 		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
 			calculateYaw(client.player, boat);
 
@@ -119,7 +118,6 @@ public final class BoatCamMod implements ClientModInitializer {
 
 	private void invertPitch() {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
-		assert player != null;
 		player.setPitch(-player.getPitch());
 	}
 
@@ -162,7 +160,6 @@ public final class BoatCamMod implements ClientModInitializer {
 	// If returns true, look direction change should be cancelled
 	public boolean onLookDirectionChanging(double dx, double dy) {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
-		assert player != null;
 		if (!(player.getVehicle() instanceof AbstractBoatEntity b)) {
 			return false;
 		}

@@ -33,8 +33,5 @@
     "minecraft": ">=1.21.3",
     "java": ">=21",
     "cloth-config2": ">=16.0.141"
-  },
-  "suggests": {
-    "modmenu": ">=12.0.0"
   }
 }

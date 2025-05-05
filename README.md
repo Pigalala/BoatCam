@@ -17,4 +17,3 @@ This mod was originally created by Bstn1802, and is being maintained by Pigalala
 These mods must be installed in order for this mod to work.
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - [Cloth Config](https://modrinth.com/mod/cloth-config)
-- [Mod Menu](https://modrinth.com/mod/modmenu)

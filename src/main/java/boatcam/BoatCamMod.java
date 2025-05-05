@@ -25,7 +25,8 @@ public final class BoatCamMod implements ClientModInitializer {
 
 	private static BoatCamMod INSTANCE;
 
-	private final KeyBinding TOGGLE = new KeyBinding("key.boatcam.toggle", KEYSYM, GLFW_KEY_B, "BoatCam");
+	private final KeyBinding MENU = new KeyBinding("key.boatcam.menu", KEYSYM, GLFW_KEY_B, "BoatCam");
+	private final KeyBinding TOGGLE = new KeyBinding("key.boatcam.toggle", KEYSYM, -1, "BoatCam");
 	private final KeyBinding LOOK_BEHIND = new KeyBinding("key.boatcam.lookbehind", KEYSYM, -1, "BoatCam");
 	private final KeyBinding LOOK_LEFT = new KeyBinding("key.boatcam.lookleft", KEYSYM, -1, "BoatCam");
 	private final KeyBinding LOOK_RIGHT = new KeyBinding("key.boatcam.lookright", KEYSYM, -1, "BoatCam");
@@ -46,6 +47,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		AutoConfig.register(BoatCamConfig.class, JanksonConfigSerializer::new);
 		BoatCamConfig.registerPerspectiveConfiguration();
 
+		KeyBindingHelper.registerKeyBinding(MENU);
 		KeyBindingHelper.registerKeyBinding(TOGGLE);
 		KeyBindingHelper.registerKeyBinding(LOOK_BEHIND);
 		KeyBindingHelper.registerKeyBinding(LOOK_LEFT);
@@ -56,6 +58,11 @@ public final class BoatCamMod implements ClientModInitializer {
 
 	private void onClientStartWorldTick(ClientWorld world) {
 		MinecraftClient client = MinecraftClient.getInstance();
+
+		if (MENU.wasPressed()) {
+			client.setScreen(AutoConfig.getConfigScreen(BoatCamConfig.class, client.currentScreen).get());
+			return;
+		}
 
 		if (TOGGLE.wasPressed()) {
 			getConfig().toggleBoatMode();

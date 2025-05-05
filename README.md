@@ -1,10 +1,17 @@
 # BoatCam
 BoatCam is a mod which adds some useful and customizable tweaks to the player camera for a smooth boat racing experience.
 
-This mod was originally created by Bstn1802, and is being maintained by Pigalala in this repository.
+This mod has been forked from Bstn1802's BoatCam, as it was no longer being maintained.
+
+### Examples of the BoatCam in action
+- [Makkuusen - Corkscrew Tunnel](https://youtu.be/hix1vggrcxg)
+- [Renokas1 - LightSpeedII](https://www.youtube.com/shorts/cByoSflPB1Y) *if you prefer shorts*
+### Examples of vanilla camera (for comparison)
+- [Seth the Lasersloth - Tunelrun](https://youtu.be/Hd_ljulsdkg)
+- [TechnoGustav - SoxxCircuit](https://youtu.be/VSZJ7I2Zfgw)
 
 ## Features
-*All features are toggleable, and a master toggle is available.*
+The configuration menu can be opened with 'B' by default, or via the ModMenu mod if you have installed.
 - Camera yaw is automatically set, depending on your boat's direction and velocity.
 - Configurable camera smoothness.
 - Automatic perspective change when entering a boat.

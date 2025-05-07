@@ -24,3 +24,10 @@ The configuration menu can be opened with 'B' by default, or via the ModMenu mod
 These mods must be installed in order for this mod to work.
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - [Cloth Config](https://modrinth.com/mod/cloth-config)
+
+## Building
+*Java 21 is required*
+1. Clone the repository
+2. cd into the new directory
+3. Run `gradlew build`
+4. The built jar file will be located in `build/libs/`

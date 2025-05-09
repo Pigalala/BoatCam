@@ -28,7 +28,7 @@ public final class BoatCamConfig implements ConfigData {
     private int smoothness = 50;
 
     @Comment("Perspective when riding a boat in boat mode. Perspective wont change when this is set to none.")
-    private Perspective perspective = Perspective.NONE;
+    private Perspective perspective = Perspective.THIRD_PERSON;
 
     @Comment("Whether to fix the camera angle at a certain pitch.")
     private boolean fixedPitch = false;
@@ -37,15 +37,19 @@ public final class BoatCamConfig implements ConfigData {
     @BoundedDiscrete(min = -90, max = 90)
     private int pitch = 25;
 
-    @Comment("Disables the turn limit in a boat.\nNOTE: The turn limit is always disabled in boat mode!")
-    private boolean turnLimitDisabled = false;
+    @Comment("Disables the turn limit in a boat.")
+    private boolean turnLimitDisabled = true;
 
     private BoatCamConfig() {}
 
     @Override
     public void validatePostLoad() {
-        if(smoothness < 1 || smoothness > 100) smoothness = 50;
-        if(perspective == null) perspective = Perspective.NONE;
+        smoothness = Math.clamp(smoothness, 1, 100);
+        pitch = Math.clamp(pitch, -90, 90);
+
+        if (perspective == null) {
+            perspective = Perspective.THIRD_PERSON;
+        }
     }
 
     public static void saveConfig() {

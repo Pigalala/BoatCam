@@ -11,7 +11,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.vehicle.AbstractBoatEntity;
+import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
@@ -69,7 +69,7 @@ public final class BoatCamMod implements ClientModInitializer {
 			client.inGameHud.setOverlayMessage(Text.literal(getConfig().isBoatMode() ? "Boat mode" : "Normal mode").styled(s -> s.withColor(GREEN)), false);
 		}
 
-		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
+		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof BoatEntity boat) {
 			calculateYaw(client.player, boat);
 
 			// Was stationary but now moving and vice versa
@@ -134,7 +134,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		perspective = null;
 	}
 
-	private void calculateYaw(ClientPlayerEntity player, AbstractBoatEntity boat) {
+	private void calculateYaw(ClientPlayerEntity player, BoatEntity boat) {
 		float yaw = boat.getYaw();
 
 		if (!shouldOverrideCamera(boat)) {
@@ -171,7 +171,7 @@ public final class BoatCamMod implements ClientModInitializer {
 	// If returns true, look direction change should be cancelled
 	public boolean onLookDirectionChanging(double dx, double dy) {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
-		if (!(player.getVehicle() instanceof AbstractBoatEntity b)) {
+		if (!(player.getVehicle() instanceof BoatEntity b)) {
 			return false;
 		}
 
@@ -185,7 +185,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		return false;
 	}
 
-	boolean shouldOverrideCamera(AbstractBoatEntity boat) {
+	boolean shouldOverrideCamera(BoatEntity boat) {
 		return !BoatCamConfig.getConfig().isStationaryLookAround() || LOOK_LEFT.isPressed() || LOOK_RIGHT.isPressed() || boat.getVelocity().lengthSquared() >= 0.02 * 0.02;
 	}
 

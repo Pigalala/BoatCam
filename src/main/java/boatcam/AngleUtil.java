@@ -7,15 +7,7 @@ public final class AngleUtil {
     public static float lerp(float t, float a, float b) {
         a = mod(a);
         b = mod(b);
-
-        float delta = b - a;
-        if (delta > 180) {
-            delta -= 360;
-        } else if (delta < -180) {
-            delta += 360;
-        }
-
-        return mod(a + t * delta);
+        return a + t * mod(b - a);
     }
 
     // makes sure the angle is in range [-180, 180)

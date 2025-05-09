@@ -137,6 +137,12 @@ public final class BoatCamMod implements ClientModInitializer {
 	private void calculateYaw(ClientPlayerEntity player, AbstractBoatEntity boat) {
 		float yaw = boat.getYaw();
 
+		if (!shouldOverrideCamera(boat)) {
+			previousYaw = yaw;
+			boatPos = boat.getPos();
+			return;
+		}
+
 		float directionOffset = 0f;
 		if (LOOK_LEFT.isPressed()) {
 			yaw -= 90f;
@@ -156,9 +162,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		}
 		yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 
-		if (shouldOverrideCamera(boat)) {
-			player.setYaw(yaw);
-		}
+		player.setYaw(yaw);
 
 		previousYaw = yaw;
 		boatPos = boat.getPos();

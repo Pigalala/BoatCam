@@ -16,5 +16,6 @@
   "text.autoconfig.boatcam.option.pitch": "Pitch",
   "text.autoconfig.boatcam.option.turnLimitDisabled": "Turn limit disabled",
   "text.autoconfig.boatcam.option.cameraDistance": "Camera Distance",
-  "text.autoconfig.boatcam.option.fixedFov": "Fixed Field of View"
+  "text.autoconfig.boatcam.option.fixedFov": "Fixed Field of View",
+  "text.autoconfig.boatcam.option.fov": "Field of View"
 }

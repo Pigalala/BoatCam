@@ -8,6 +8,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.gui.entries.DropdownBoxEntry;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 
 import java.lang.reflect.Field;
@@ -47,6 +48,10 @@ public final class BoatCamConfig implements ConfigData {
     @Comment("Whether to fix the camera's FOV when in a boat or not.\nThis setting is best used to combat the FOV change due to driving on powdered snow.")
     private boolean fixedFov = true;
 
+    @Comment("Field of view to use when in a boat.\n0 indicates to the mod that the Minecraft FOV setting should be used.")
+    @BoundedDiscrete(max = 135)
+    private int fov = 0;
+
     private BoatCamConfig() {}
 
     @Override
@@ -54,6 +59,7 @@ public final class BoatCamConfig implements ConfigData {
         smoothness = Math.clamp(smoothness, 1, 100);
         pitch = Math.clamp(pitch, -90, 90);
         cameraDistance = Math.clamp(cameraDistance, 0, 150);
+        fov = Math.clamp(fov, 0, 135);
 
         if (perspective == null) {
             perspective = Perspective.THIRD_PERSON;
@@ -103,6 +109,10 @@ public final class BoatCamConfig implements ConfigData {
 
     public boolean isFixedFov() {
         return fixedFov;
+    }
+
+    public int getFov() {
+        return fov == 0 ? MinecraftClient.getInstance().options.getFov().getValue() : fov;
     }
 
     public enum Perspective {

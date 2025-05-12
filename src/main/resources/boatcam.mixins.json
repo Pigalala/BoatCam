@@ -9,7 +9,8 @@
     "AbstractClientPlayerEntityMixin",
     "BoatEntityMixin",
     "CameraMixin",
-    "EntityMixin"
+    "EntityMixin",
+    "GameRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

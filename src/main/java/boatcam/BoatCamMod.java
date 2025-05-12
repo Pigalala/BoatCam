@@ -14,6 +14,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Vector3f;
 
 import static boatcam.config.BoatCamConfig.getConfig;
 import static java.lang.Math.*;
@@ -183,6 +184,15 @@ public final class BoatCamMod implements ClientModInitializer {
 		}
 
 		return false;
+	}
+
+	public Vector3f getCameraDistance(Vector3f original) {
+		ClientPlayerEntity player = MinecraftClient.getInstance().player;
+		if (player != null && player.getVehicle() instanceof AbstractBoatEntity && getConfig().isBoatMode()) {
+			return original.mul(getConfig().getCameraDistance());
+		}
+
+		return original;
 	}
 
 	boolean shouldOverrideCamera(AbstractBoatEntity boat) {

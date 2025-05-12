@@ -40,12 +40,17 @@ public final class BoatCamConfig implements ConfigData {
     @Comment("Disables the turn limit in a boat.")
     private boolean turnLimitDisabled = true;
 
+    @Comment("Changes the distance of the camera from the boat, relative to the vanilla distance (50).\n0 is inside your head; you probably don't want that :P")
+    @BoundedDiscrete(max = 150)
+    private int cameraDistance = 50;
+
     private BoatCamConfig() {}
 
     @Override
     public void validatePostLoad() {
         smoothness = Math.clamp(smoothness, 1, 100);
         pitch = Math.clamp(pitch, -90, 90);
+        cameraDistance = Math.clamp(cameraDistance, 0, 150);
 
         if (perspective == null) {
             perspective = Perspective.THIRD_PERSON;
@@ -87,6 +92,10 @@ public final class BoatCamConfig implements ConfigData {
 
     public boolean isTurnLimitDisabled() {
         return turnLimitDisabled;
+    }
+
+    public float getCameraDistance() {
+        return cameraDistance / 50f;
     }
 
     public enum Perspective {

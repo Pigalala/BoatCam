@@ -14,5 +14,6 @@
   "text.autoconfig.boatcam.option.perspective.thirdPerson": "Third person",
   "text.autoconfig.boatcam.option.fixedPitch": "Fixed pitch",
   "text.autoconfig.boatcam.option.pitch": "Pitch",
-  "text.autoconfig.boatcam.option.turnLimitDisabled": "Turn limit disabled"
+  "text.autoconfig.boatcam.option.turnLimitDisabled": "Turn limit disabled",
+  "text.autoconfig.boatcam.option.cameraDistance": "Camera Distance"
 }

@@ -44,6 +44,9 @@ public final class BoatCamConfig implements ConfigData {
     @BoundedDiscrete(max = 150)
     private int cameraDistance = 50;
 
+    @Comment("Whether to fix the camera's FOV when in a boat or not.\nThis setting is best used to combat the FOV change due to driving on powdered snow.")
+    private boolean fixedFov = true;
+
     private BoatCamConfig() {}
 
     @Override
@@ -96,6 +99,10 @@ public final class BoatCamConfig implements ConfigData {
 
     public float getCameraDistance() {
         return cameraDistance / 50f;
+    }
+
+    public boolean isFixedFov() {
+        return fixedFov;
     }
 
     public enum Perspective {

@@ -195,6 +195,15 @@ public final class BoatCamMod implements ClientModInitializer {
 		return original;
 	}
 
+	public float getFovModifier(float original) {
+		ClientPlayerEntity player = MinecraftClient.getInstance().player;
+		if (player.getVehicle() instanceof AbstractBoatEntity && getConfig().isBoatMode() && getConfig().isFixedFov()) {
+			return 0;
+		}
+
+		return original;
+	}
+
 	boolean shouldOverrideCamera(AbstractBoatEntity boat) {
 		return !BoatCamConfig.getConfig().isStationaryLookAround() || LOOK_LEFT.isPressed() || LOOK_RIGHT.isPressed() || boat.getVelocity().lengthSquared() >= 0.02 * 0.02;
 	}

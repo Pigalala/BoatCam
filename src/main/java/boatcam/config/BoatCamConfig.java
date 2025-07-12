@@ -41,9 +41,9 @@ public final class BoatCamConfig implements ConfigData {
     @Comment("Disables the turn limit in a boat.")
     private boolean turnLimitDisabled = true;
 
-    @Comment("Changes the distance of the camera from the boat, relative to the vanilla distance (50).\n0 is inside your head; you probably don't want that :P")
-    @BoundedDiscrete(max = 150)
-    private int cameraDistance = 50;
+    @Comment("Changes the distance of the camera from the boat, in blocks.\n0 is inside your head; you probably don't want that :P")
+    @BoundedDiscrete(max = 10)
+    private float cameraDistance = 4f;
 
     @Comment("Whether to fix the camera's FOV when in a boat or not.\nThis setting is best used to combat the FOV change due to driving on powdered snow.")
     private boolean fixedFov = true;
@@ -58,7 +58,7 @@ public final class BoatCamConfig implements ConfigData {
     public void validatePostLoad() {
         smoothness = Math.clamp(smoothness, 1, 100);
         pitch = Math.clamp(pitch, -90, 90);
-        cameraDistance = Math.clamp(cameraDistance, 0, 150);
+        cameraDistance = Math.clamp(cameraDistance, 0, 10);
         fov = Math.clamp(fov, 0, 135);
 
         if (perspective == null) {
@@ -104,7 +104,7 @@ public final class BoatCamConfig implements ConfigData {
     }
 
     public float getCameraDistance() {
-        return cameraDistance / 50f;
+        return cameraDistance;
     }
 
     public boolean isFixedFov() {

@@ -189,7 +189,7 @@ public final class BoatCamMod implements ClientModInitializer {
 	public Vector3f getCameraDistance(Vector3f original) {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
 		if (player != null && player.getVehicle() instanceof AbstractBoatEntity && getConfig().isBoatMode()) {
-			return original.mul(getConfig().getCameraDistance());
+			return original.div(original.length()).mul(getConfig().getCameraDistance());
 		}
 
 		return original;

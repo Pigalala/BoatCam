@@ -83,18 +83,21 @@ public final class BoatCamMod implements ClientModInitializer {
 
 			// first tick riding in boat mode
 			if (perspective == null) {
-				// fix pitch if configured
-				if (getConfig().shouldFixPitch()) {
-					client.player.setPitch(getConfig().getPitch());
+				if (lookingBehind) {
+					invertPitch();
+					lookingBehind = false;
 				}
-				// init look behind
-				lookingBehind = false;
+
 				// save perspective
 				perspective = client.options.getPerspective();
 				// set perspective
 				switch (getConfig().getPerspective()) {
 					case FIRST_PERSON -> client.options.setPerspective(Perspective.FIRST_PERSON);
 					case THIRD_PERSON -> client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+				}
+
+				if (getConfig().shouldFixPitch()) {
+					client.player.setPitch(getConfig().getPitch());
 				}
 			}
 		} else {

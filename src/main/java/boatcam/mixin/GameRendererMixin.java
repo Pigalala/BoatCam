@@ -23,7 +23,7 @@ public class GameRendererMixin {
     )
     void getFov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Float> cir) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if (player != null && player.getVehicle() instanceof AbstractBoatEntity && getConfig().isBoatMode()) {
+        if (player != null && player.getVehicle() instanceof AbstractBoatEntity && getConfig().boatMode) {
             int fov = BoatCamConfig.getConfig().getFov();
             if (fov > 0) {
                 cir.setReturnValue((float) fov);

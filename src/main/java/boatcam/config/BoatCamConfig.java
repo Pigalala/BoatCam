@@ -1,56 +1,29 @@
 package boatcam.config;
 
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry.BoundedDiscrete;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import me.shedaniel.clothconfig2.gui.entries.DropdownBoxEntry;
+import com.google.gson.Gson;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 
-import java.lang.reflect.Field;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-@SuppressWarnings({ "unused", "FieldCanBeLocal", "FieldMayBeFinal" })
-@Config(name = "boatcam")
-public final class BoatCamConfig implements ConfigData {
+public final class BoatCamConfig {
 
-    @Comment("Whether the camera should be controlled by this mod or not.\nNOTE: This setting can be toggled using a key bind.")
-    private boolean boatMode = true;
+    private static BoatCamConfig INSTANCE;
 
-    @Comment("Frees camera movement when not moving in a boat.")
-    private boolean stationaryLookAround = true;
+    private static final Path CONFIG_PATH = Path.of("config", "boatcam.json5");
 
-    @Comment("1 - Smooth camera, might even lag behind.\n100 - Camera angle might change very abruptly.")
-    @BoundedDiscrete(min = 1, max = 100)
-    private int smoothness = 50;
-
-    @Comment("Perspective when riding a boat in boat mode. Perspective wont change when this is set to none.")
-    private Perspective perspective = Perspective.THIRD_PERSON;
-
-    @Comment("Whether to fix the camera angle at a certain pitch.")
-    private boolean fixedPitch = false;
-
-    @Comment("Fixed vertical angle of the camera when fixedPitch is enabled.")
-    @BoundedDiscrete(min = -90, max = 90)
-    private int pitch = 25;
-
-    @Comment("Disables the turn limit in a boat.")
-    private boolean turnLimitDisabled = true;
-
-    @Comment("Whether to fix the camera's FOV when in a boat or not.\nThis setting is best used to combat the FOV change due to driving on powdered snow.")
-    private boolean fixedFov = true;
-
-    @Comment("Field of view to use when in a boat.\n0 indicates to the mod that the Minecraft FOV setting should be used.")
-    @BoundedDiscrete(max = 135)
-    private int fov = 0;
+    public boolean boatMode = true;
+    public boolean stationaryLookAround = true;
+    public int smoothness = 50;
+    public Perspective perspective = Perspective.THIRD_PERSON;
+    public boolean fixedPitch = false;
+    public int pitch = 25;
+    public boolean turnLimitDisabled = true;
+    public int fov = 0;
 
     private BoatCamConfig() {}
 
-    @Override
     public void validatePostLoad() {
         smoothness = Math.clamp(smoothness, 1, 100);
         pitch = Math.clamp(pitch, -90, 90);
@@ -61,33 +34,13 @@ public final class BoatCamConfig implements ConfigData {
         }
     }
 
-    public static void saveConfig() {
-        AutoConfig.getConfigHolder(BoatCamConfig.class).save();
-    }
-
     public float getSmoothness() {
         return smoothness / 100f;
     }
 
-    public boolean isBoatMode() {
-        return boatMode;
-    }
-
-    public boolean isStationaryLookAround() {
-        return stationaryLookAround;
-    }
-
-    public boolean shouldFixPitch() {
-        return fixedPitch;
-    }
-
-    public int getPitch() {
-        return pitch;
-    }
-
     public void toggleBoatMode() {
         boatMode = !boatMode;
-        saveConfig();
+        save();
     }
 
     public Perspective getPerspective() {
@@ -99,49 +52,42 @@ public final class BoatCamConfig implements ConfigData {
     }
 
     public boolean isFixedFov() {
-        return fixedFov;
+        return fov == 0;
     }
 
     public int getFov() {
-        return fov == 0 ? MinecraftClient.getInstance().options.getFov().getValue() : fov;
+        return isFixedFov() ? MinecraftClient.getInstance().options.getFov().getValue() : fov;
     }
 
     public enum Perspective {
         NONE, FIRST_PERSON, THIRD_PERSON;
     }
 
+    public void save() {
+        try {
+            if (Files.notExists(CONFIG_PATH)) {
+                Files.createFile(CONFIG_PATH);
+            }
+
+            var gson = new Gson();
+            Files.writeString(CONFIG_PATH, gson.toJson(this));
+        } catch (Exception e) {
+            System.err.println("Could not write config: " + e.getMessage());
+        }
+    }
+
+    public static void load() throws IOException {
+        if (Files.notExists(CONFIG_PATH)) {
+            INSTANCE = new BoatCamConfig();
+            return;
+        }
+
+        var gson = new Gson();
+        INSTANCE = gson.fromJson(Files.readString(CONFIG_PATH), BoatCamConfig.class);
+        INSTANCE.validatePostLoad();
+    }
+
     public static BoatCamConfig getConfig() {
-        return AutoConfig.getConfigHolder(BoatCamConfig.class).get();
-    }
-
-    public static void registerPerspectiveConfiguration() {
-        AutoConfig.getGuiRegistry(BoatCamConfig.class).registerPredicateTransformer(
-                (guis, s, f, c, d, g) -> dropdownToEnumList(guis, f),
-                field -> BoatCamConfig.Perspective.class.isAssignableFrom(field.getType())
-        );
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private static List<AbstractConfigListEntry> dropdownToEnumList(List<AbstractConfigListEntry> guis, Field field) {
-        return guis.stream()
-                .filter(DropdownBoxEntry.class::isInstance)
-                .map(DropdownBoxEntry.class::cast)
-                // transform dropdown menu into enum list
-                .map(dropdown -> ConfigEntryBuilder.create()
-                        .startEnumSelector(dropdown.getFieldName(), BoatCamConfig.Perspective.class, (BoatCamConfig.Perspective) dropdown.getValue())
-                        .setDefaultValue((BoatCamConfig.Perspective) dropdown.getDefaultValue().orElse(null))
-                        .setSaveConsumer(p -> {
-                            try {
-                                field.set(getConfig(), p);
-                            } catch (IllegalAccessException ignored) {}
-                        })
-                        .setEnumNameProvider(perspective -> switch ((BoatCamConfig.Perspective) perspective) {
-                            case FIRST_PERSON -> Text.translatable("text.autoconfig.boatcam.option.perspective.firstPerson");
-                            case THIRD_PERSON -> Text.translatable("text.autoconfig.boatcam.option.perspective.thirdPerson");
-                            case NONE -> Text.translatable("text.autoconfig.boatcam.option.perspective.none");
-                        })
-                        .build())
-                .map(AbstractConfigListEntry.class::cast)
-                .toList();
+        return INSTANCE;
     }
 }

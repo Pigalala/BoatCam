@@ -1,8 +1,7 @@
 package boatcam;
 
 import boatcam.config.BoatCamConfig;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
+import boatcam.config.BoatCamConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -14,7 +13,6 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Vector3f;
 
 import static boatcam.config.BoatCamConfig.getConfig;
 import static java.lang.Math.*;
@@ -45,8 +43,12 @@ public final class BoatCamMod implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		AutoConfig.register(BoatCamConfig.class, JanksonConfigSerializer::new);
-		BoatCamConfig.registerPerspectiveConfiguration();
+		try {
+			BoatCamConfig.load();
+		} catch (Exception e) {
+			System.out.println("Could not load config.");
+			throw new RuntimeException(e);
+		}
 
 		KeyBindingHelper.registerKeyBinding(MENU);
 		KeyBindingHelper.registerKeyBinding(TOGGLE);
@@ -61,23 +63,23 @@ public final class BoatCamMod implements ClientModInitializer {
 		MinecraftClient client = MinecraftClient.getInstance();
 
 		if (MENU.wasPressed()) {
-			client.setScreen(AutoConfig.getConfigScreen(BoatCamConfig.class, client.currentScreen).get());
+			client.setScreen(new BoatCamConfigScreen(client.currentScreen));
 			return;
 		}
 
 		if (TOGGLE.wasPressed()) {
 			getConfig().toggleBoatMode();
-			client.inGameHud.setOverlayMessage(Text.literal(getConfig().isBoatMode() ? "Boat mode" : "Normal mode").styled(s -> s.withColor(GREEN)), false);
+			client.inGameHud.setOverlayMessage(Text.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").styled(s -> s.withColor(GREEN)), false);
 		}
 
-		if (getConfig().isBoatMode() && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
+		if (getConfig().boatMode && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
 			calculateYaw(client.player, boat);
 
 			// Was stationary but now moving and vice versa
 			if (unfixedCameraActive != shouldOverrideCamera(boat)) {
 				unfixedCameraActive = !unfixedCameraActive;
-				if (getConfig().shouldFixPitch()) {
-					client.player.setPitch(getConfig().getPitch());
+				if (getConfig().fixedPitch) {
+					client.player.setPitch(getConfig().pitch);
 				}
 			}
 
@@ -96,8 +98,8 @@ public final class BoatCamMod implements ClientModInitializer {
 					case THIRD_PERSON -> client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
 				}
 
-				if (getConfig().shouldFixPitch()) {
-					client.player.setPitch(getConfig().getPitch());
+				if (getConfig().fixedPitch) {
+					client.player.setPitch(getConfig().pitch);
 				}
 			}
 		} else {
@@ -179,9 +181,9 @@ public final class BoatCamMod implements ClientModInitializer {
 			return false;
 		}
 
-		if (getConfig().isBoatMode() && shouldOverrideCamera(b)) {
-			if (dx != 0 || getConfig().shouldFixPitch() && dy != 0) {
-				player.changeLookDirection(0, getConfig().shouldFixPitch() ? 0 : dy);
+		if (getConfig().boatMode && shouldOverrideCamera(b)) {
+			if (dx != 0 || getConfig().fixedPitch && dy != 0) {
+				player.changeLookDirection(0, getConfig().fixedPitch ? 0 : dy);
 				return true;
 			}
 		}
@@ -191,7 +193,7 @@ public final class BoatCamMod implements ClientModInitializer {
 
 	public float getFovModifier(float original) {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
-		if (player.getVehicle() instanceof AbstractBoatEntity && getConfig().isBoatMode() && getConfig().isFixedFov()) {
+		if (player.getVehicle() instanceof AbstractBoatEntity && getConfig().boatMode && getConfig().isFixedFov()) {
 			return 0;
 		}
 
@@ -199,7 +201,7 @@ public final class BoatCamMod implements ClientModInitializer {
 	}
 
 	boolean shouldOverrideCamera(AbstractBoatEntity boat) {
-		return !BoatCamConfig.getConfig().isStationaryLookAround() || LOOK_LEFT.isPressed() || LOOK_RIGHT.isPressed() || boat.getVelocity().lengthSquared() >= 0.02 * 0.02;
+		return !getConfig().stationaryLookAround || LOOK_LEFT.isPressed() || LOOK_RIGHT.isPressed() || boat.getVelocity().lengthSquared() >= 0.01 * 0.01;
 	}
 
 	public static BoatCamMod instance() {

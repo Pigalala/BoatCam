@@ -8,7 +8,6 @@
   "client": [
     "AbstractClientPlayerEntityMixin",
     "BoatEntityMixin",
-    "CameraMixin",
     "EntityMixin",
     "GameRendererMixin"
   ],

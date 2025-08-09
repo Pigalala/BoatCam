@@ -102,11 +102,17 @@ public final class BoatCamMod implements ClientModInitializer {
 					}
 				}
 
-				if (lookingBehind) {
-					client.player.setPitch(-getConfig().pitch);
+				if (getConfig().fixedPitch) {
+					if (lookingBehind) {
+						client.player.setPitch(-getConfig().pitch);
+					} else {
+						client.player.setPitch(getConfig().pitch);
+					}
 				} else {
-					client.player.setPitch(getConfig().pitch);
-				}
+					if (lookingBehind) {
+						client.player.setPitch(-getConfig().pitch);
+					}
+                }
 			}
 		} else {
 			// first tick after disabling boat mode or leaving boat

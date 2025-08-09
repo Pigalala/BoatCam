@@ -7,8 +7,7 @@
   ],
   "client": [
     "BoatEntityMixin",
-    "EntityMixin",
-    "GameRendererMixin"
+    "EntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

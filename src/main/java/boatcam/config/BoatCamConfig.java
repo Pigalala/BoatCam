@@ -20,14 +20,12 @@ public final class BoatCamConfig {
     public boolean fixedPitch = false;
     public int pitch = 25;
     public boolean turnLimitDisabled = true;
-    public int fov = 0;
 
     private BoatCamConfig() {}
 
     public void validatePostLoad() {
         smoothness = Math.clamp(smoothness, 1, 100);
         pitch = Math.clamp(pitch, -90, 90);
-        fov = Math.clamp(fov, 0, 135);
 
         if (perspective == null) {
             perspective = Perspective.THIRD_PERSON;
@@ -49,10 +47,6 @@ public final class BoatCamConfig {
 
     public boolean isTurnLimitDisabled() {
         return turnLimitDisabled;
-    }
-
-    public int getFov() {
-        return fov == 0 ? MinecraftClient.getInstance().options.getFov().getValue() : fov;
     }
 
     public enum Perspective {

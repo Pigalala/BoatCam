@@ -30,7 +30,6 @@ public class BoatCamConfigScreen extends YACLScreen {
                         .option(stationaryLookAroundOption())
                         .option(perspectiveOption())
                         .option(turnLimitDisabled())
-                        .option(fovOption())
                         .build()
                 )
                 .save(() -> {
@@ -114,25 +113,6 @@ public class BoatCamConfigScreen extends YACLScreen {
                 .description(OptionDescription.of(Text.literal("Whether the vanilla turn limit in a boat should be applied or not.")))
                 .controller(TickBoxControllerBuilderImpl::new)
                 .binding(true, () -> !BoatCamConfig.getConfig().turnLimitDisabled, val -> BoatCamConfig.getConfig().turnLimitDisabled = !val)
-                .build();
-    }
-
-    static Option<Integer> fovOption() {
-        return Option.<Integer>createBuilder()
-                .name(Text.literal("Field of View"))
-                .description(OptionDescription.of(Text.literal("Field of view to use when in a boat.\nDrag slider to the far left to not override the fov for everything.")))
-                .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                        .range(0, 135)
-                        .formatValue(val -> {
-                            if (val == 0) {
-                                return Text.literal("Minecraft value (" + MinecraftClient.getInstance().options.getFov().getValue() + ")");
-                            } else {
-                                return Text.literal(String.valueOf(val));
-                            }
-                        })
-                        .step(1)
-                )
-                .binding(0, () -> BoatCamConfig.getConfig().fov, val -> BoatCamConfig.getConfig().fov = val)
                 .build();
     }
 }

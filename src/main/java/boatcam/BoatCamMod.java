@@ -78,39 +78,43 @@ public final class BoatCamMod implements ClientModInitializer {
 			// Was stationary but now moving and vice versa
 			if (unfixedCameraActive != shouldOverrideCamera(boat)) {
 				unfixedCameraActive = !unfixedCameraActive;
-				if (getConfig().fixedPitch) {
-					client.player.setPitch(getConfig().pitch);
+				if (unfixedCameraActive && getConfig().fixedPitch) {
+					if (lookingBehind) {
+						client.player.setPitch(-getConfig().pitch);
+					} else {
+						client.player.setPitch(getConfig().pitch);
+					}
 				}
 			}
 
 			// first tick riding in boat mode
 			if (perspective == null) {
-				if (lookingBehind) {
-					invertPitch();
-					lookingBehind = false;
-				}
-
-				// save perspective
 				perspective = client.options.getPerspective();
-				// set perspective
+
 				switch (getConfig().getPerspective()) {
 					case FIRST_PERSON -> client.options.setPerspective(Perspective.FIRST_PERSON);
-					case THIRD_PERSON -> client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+					case THIRD_PERSON -> {
+						if (lookingBehind) {
+							client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+						} else {
+							client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+						}
+					}
 				}
 
-				if (getConfig().fixedPitch) {
+				if (lookingBehind) {
+					client.player.setPitch(-getConfig().pitch);
+				} else {
 					client.player.setPitch(getConfig().pitch);
 				}
 			}
 		} else {
 			// first tick after disabling boat mode or leaving boat
 			if (perspective != null) {
-				resetPerspective();
-				// invert pitch if looking behind
-				if (lookingBehind) {
-					invertPitch();
-					lookingBehind = false;
-				}
+				if (!lookingBehind) {
+                    MinecraftClient.getInstance().options.setPerspective(perspective);
+                }
+                perspective = null;
 			}
 		}
 
@@ -118,26 +122,24 @@ public final class BoatCamMod implements ClientModInitializer {
 		if (LOOK_BEHIND.isPressed() != lookingBehind) {
 			lookingBehind = LOOK_BEHIND.isPressed();
 			invertPitch();
+			toggleLookBehindPerspective();
+		}
+	}
 
-			if (lookingBehind) {
-				previousPerspective = client.options.getPerspective();
-				client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
-			} else {
-				client.options.setPerspective(previousPerspective);
-				perspective = null;
-			}
+	private void toggleLookBehindPerspective() {
+		MinecraftClient client = MinecraftClient.getInstance();
+		if (lookingBehind) {
+			previousPerspective = client.options.getPerspective();
+			client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+		} else {
+			client.options.setPerspective(previousPerspective);
+			perspective = null;
 		}
 	}
 
 	private void invertPitch() {
 		ClientPlayerEntity player = MinecraftClient.getInstance().player;
 		player.setPitch(-player.getPitch());
-	}
-
-	// Assumes perspective is not null
-	private void resetPerspective() {
-		MinecraftClient.getInstance().options.setPerspective(perspective);
-		perspective = null;
 	}
 
 	private void calculateYaw(ClientPlayerEntity player, AbstractBoatEntity boat) {

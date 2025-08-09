@@ -51,12 +51,8 @@ public final class BoatCamConfig {
         return turnLimitDisabled;
     }
 
-    public boolean isFixedFov() {
-        return fov == 0;
-    }
-
     public int getFov() {
-        return isFixedFov() ? MinecraftClient.getInstance().options.getFov().getValue() : fov;
+        return fov == 0 ? MinecraftClient.getInstance().options.getFov().getValue() : fov;
     }
 
     public enum Perspective {

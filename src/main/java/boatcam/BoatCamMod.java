@@ -149,24 +149,33 @@ public final class BoatCamMod implements ClientModInitializer {
 			return;
 		}
 
+		double dx = boat.getX() - boatPos.x;
+		double dz = boat.getZ() - boatPos.z;
+
+		float directionOffset = 0f;
 		if (getConfig().snapSidewaysView) {
 			if (LOOK_LEFT.isPressed()) {
 				yaw -= 90f;
 			} else if (LOOK_RIGHT.isPressed()) {
 				yaw += 90f;
+			} else {
+				if (dx != 0 || dz != 0) {
+					float vel = (float) hypot(dz, dx);
+					float direction = (float) toDegrees(atan2(dz, dx)) - 90;
+					float t = min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
+					yaw = AngleUtil.lerp(t, yaw, direction);
+				}
+				yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 			}
 		} else {
-			float directionOffset = 0f;
 			if (LOOK_LEFT.isPressed()) {
 				yaw -= 90f;
 				directionOffset = -90f;
 			} else if (LOOK_RIGHT.isPressed()) {
-				yaw += 90;
+				yaw += 90f;
 				directionOffset = 90f;
 			}
 
-			double dx = boat.getX() - boatPos.x;
-			double dz = boat.getZ() - boatPos.z;
 			if (dx != 0 || dz != 0) {
 				float vel = (float) hypot(dz, dx);
 				float direction = (float) toDegrees(atan2(dz, dx)) - 90;
@@ -175,6 +184,7 @@ public final class BoatCamMod implements ClientModInitializer {
 			}
 			yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 		}
+
 
 
 		player.setYaw(yaw);

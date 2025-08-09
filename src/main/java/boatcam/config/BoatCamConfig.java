@@ -20,6 +20,7 @@ public final class BoatCamConfig {
     public boolean fixedPitch = false;
     public int pitch = 25;
     public boolean turnLimitDisabled = true;
+    public boolean snapSidewaysView = false;
 
     private BoatCamConfig() {}
 

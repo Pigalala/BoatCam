@@ -12,6 +12,7 @@ import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 import static boatcam.config.BoatCamConfig.getConfig;
@@ -24,11 +25,13 @@ public final class BoatCamMod implements ClientModInitializer {
 
 	private static BoatCamMod INSTANCE;
 
-	private final KeyBinding MENU = new KeyBinding("key.boatcam.menu", KEYSYM, GLFW_KEY_B, "BoatCam");
-	private final KeyBinding TOGGLE = new KeyBinding("key.boatcam.toggle", KEYSYM, -1, "BoatCam");
-	private final KeyBinding LOOK_BEHIND = new KeyBinding("key.boatcam.lookbehind", KEYSYM, -1, "BoatCam");
-	private final KeyBinding LOOK_LEFT = new KeyBinding("key.boatcam.lookleft", KEYSYM, -1, "BoatCam");
-	private final KeyBinding LOOK_RIGHT = new KeyBinding("key.boatcam.lookright", KEYSYM, -1, "BoatCam");
+	private final KeyBinding.Category KEY_BINDING_CATEGORY = new KeyBinding.Category(Identifier.of("boatcam", "boatcam"));
+
+	private final KeyBinding MENU = new KeyBinding("key.boatcam.menu", KEYSYM, GLFW_KEY_B, KEY_BINDING_CATEGORY);
+	private final KeyBinding TOGGLE = new KeyBinding("key.boatcam.toggle", KEYSYM, -1, KEY_BINDING_CATEGORY);
+	private final KeyBinding LOOK_BEHIND = new KeyBinding("key.boatcam.lookbehind", KEYSYM, -1, KEY_BINDING_CATEGORY);
+	private final KeyBinding LOOK_LEFT = new KeyBinding("key.boatcam.lookleft", KEYSYM, -1, KEY_BINDING_CATEGORY);
+	private final KeyBinding LOOK_RIGHT = new KeyBinding("key.boatcam.lookright", KEYSYM, -1, KEY_BINDING_CATEGORY);
 
 	private Perspective perspective = null;
 	private Perspective previousPerspective = null;
@@ -153,7 +156,7 @@ public final class BoatCamMod implements ClientModInitializer {
 
 		if (!shouldOverrideCamera(boat)) {
 			previousYaw = yaw;
-			boatPos = boat.getPos();
+			boatPos = boat.getEntityPos();
 			return;
 		}
 
@@ -198,7 +201,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		player.setYaw(yaw);
 
 		previousYaw = yaw;
-		boatPos = boat.getPos();
+		boatPos = boat.getEntityPos();
 	}
 
 	// If returns true, look direction change should be cancelled

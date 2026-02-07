@@ -117,9 +117,13 @@ public final class BoatCamMod implements ClientModInitializer {
 		} else {
 			// first tick after disabling boat mode or leaving boat
 			if (perspective != null) {
-				if (!lookingBehind) {
-                    MinecraftClient.getInstance().options.setPerspective(perspective);
-                }
+				MinecraftClient.getInstance().options.setPerspective(perspective);
+				if (lookingBehind) {
+					lookingBehind = false;
+					previousPerspective = perspective;
+					invertPitch();
+					toggleLookBehindPerspective();
+				}
                 perspective = null;
 			}
 		}
@@ -139,7 +143,6 @@ public final class BoatCamMod implements ClientModInitializer {
 			client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
 		} else {
 			client.options.setPerspective(previousPerspective);
-			perspective = null;
 		}
 	}
 

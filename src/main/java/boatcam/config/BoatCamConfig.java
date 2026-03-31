@@ -1,8 +1,6 @@
 package boatcam.config;
 
 import com.google.gson.Gson;
-import net.minecraft.client.MinecraftClient;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -8,8 +8,8 @@ import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.impl.controller.TickBoxControllerBuilderImpl;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 public class BoatCamConfigScreen extends YACLScreen {
 
@@ -19,9 +19,9 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static YetAnotherConfigLib createConfig() {
         return YetAnotherConfigLib.createBuilder()
-                .title(Text.literal("BoatCam"))
+                .title(Component.literal("BoatCam"))
                 .category(ConfigCategory.createBuilder()
-                        .name(Text.literal("BoatCam"))
+                        .name(Component.literal("BoatCam"))
                         .option(boatModeOption())
                         .option(smoothnessOption())
                         .option(fixedPitchOption())
@@ -44,8 +44,8 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<Boolean> boatModeOption() {
         return Option.<Boolean>createBuilder()
-                .name(Text.literal("Boat Mode"))
-                .description(OptionDescription.of(Text.literal("Whether the camera should be controlled by this mod or not.\nThis setting can be toggled using a key bind.")))
+                .name(Component.literal("Boat Mode"))
+                .description(OptionDescription.of(Component.literal("Whether the camera should be controlled by this mod or not.\nThis setting can be toggled using a key bind.")))
                 .controller(TickBoxControllerBuilderImpl::new)
                 .binding(true, () -> BoatCamConfig.getConfig().boatMode, val -> BoatCamConfig.getConfig().boatMode = val)
                 .build();
@@ -53,11 +53,11 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<Integer> smoothnessOption() {
         return Option.<Integer>createBuilder()
-                .name(Text.literal("Smoothness"))
-                .description(OptionDescription.of(Text.literal("1 - Smooth camera, might even lag behind.\n100 - Camera angle might change very abruptly.")))
+                .name(Component.literal("Smoothness"))
+                .description(OptionDescription.of(Component.literal("1 - Smooth camera, might even lag behind.\n100 - Camera angle might change very abruptly.")))
                 .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                         .range(1, 100)
-                        .formatValue(val -> Text.literal(String.valueOf(val)))
+                        .formatValue(val -> Component.literal(String.valueOf(val)))
                         .step(1)
                 )
                 .binding(50, () -> BoatCamConfig.getConfig().smoothness, val -> BoatCamConfig.getConfig().smoothness = val)
@@ -66,8 +66,8 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<Boolean> fixedPitchOption() {
         return Option.<Boolean>createBuilder()
-                .name(Text.literal("Fixed Pitch"))
-                .description(OptionDescription.of(Text.literal("Whether to fix the camera angle at a certain pitch.")))
+                .name(Component.literal("Fixed Pitch"))
+                .description(OptionDescription.of(Component.literal("Whether to fix the camera angle at a certain pitch.")))
                 .controller(TickBoxControllerBuilderImpl::new)
                 .binding(true, () -> BoatCamConfig.getConfig().fixedPitch, val -> BoatCamConfig.getConfig().fixedPitch = val)
                 .build();
@@ -75,11 +75,11 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<Integer> pitchOption() {
         return Option.<Integer>createBuilder()
-                .name(Text.literal("Pitch"))
-                .description(OptionDescription.of(Text.literal("Fixed vertical angle of the camera when fixedPitch is enabled.")))
+                .name(Component.literal("Pitch"))
+                .description(OptionDescription.of(Component.literal("Fixed vertical angle of the camera when fixedPitch is enabled.")))
                 .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                         .range(-90, 90)
-                        .formatValue(val -> Text.literal(String.valueOf(val)))
+                        .formatValue(val -> Component.literal(String.valueOf(val)))
                         .step(1)
                 )
                 .binding(50, () -> BoatCamConfig.getConfig().pitch, val -> BoatCamConfig.getConfig().pitch = val)
@@ -88,8 +88,8 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<Boolean> stationaryLookAroundOption() {
         return Option.<Boolean>createBuilder()
-                .name(Text.literal("Stationary Look Around"))
-                .description(OptionDescription.of(Text.literal("Frees camera movement when not moving in a boat.")))
+                .name(Component.literal("Stationary Look Around"))
+                .description(OptionDescription.of(Component.literal("Frees camera movement when not moving in a boat.")))
                 .controller(TickBoxControllerBuilderImpl::new)
                 .binding(true, () -> BoatCamConfig.getConfig().stationaryLookAround, val -> BoatCamConfig.getConfig().stationaryLookAround = val)
                 .build();
@@ -97,10 +97,10 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<BoatCamConfig.Perspective> perspectiveOption() {
         return Option.<BoatCamConfig.Perspective>createBuilder()
-                .name(Text.literal("Perspective"))
-                .description(OptionDescription.of(Text.literal("Perspective when riding in a boat in boat mode. Perspective wont change when this is set to none.")))
+                .name(Component.literal("Perspective"))
+                .description(OptionDescription.of(Component.literal("Perspective when riding in a boat in boat mode. Perspective wont change when this is set to none.")))
                 .controller(opt -> EnumControllerBuilder.create(opt)
-                        .formatValue(val -> Text.literal(val.name()))
+                        .formatValue(val -> Component.literal(val.name()))
                         .enumClass(BoatCamConfig.Perspective.class)
                 )
                 .binding(BoatCamConfig.Perspective.THIRD_PERSON, () -> BoatCamConfig.getConfig().perspective, val -> BoatCamConfig.getConfig().perspective = val)
@@ -109,8 +109,8 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<Boolean> turnLimitDisabled() {
         return Option.<Boolean>createBuilder()
-                .name(Text.literal("Turn Limit"))
-                .description(OptionDescription.of(Text.literal("Whether the vanilla turn limit in a boat should be applied or not.")))
+                .name(Component.literal("Turn Limit"))
+                .description(OptionDescription.of(Component.literal("Whether the vanilla turn limit in a boat should be applied or not.")))
                 .controller(TickBoxControllerBuilderImpl::new)
                 .binding(true, () -> !BoatCamConfig.getConfig().turnLimitDisabled, val -> BoatCamConfig.getConfig().turnLimitDisabled = !val)
                 .build();
@@ -118,8 +118,8 @@ public class BoatCamConfigScreen extends YACLScreen {
 
     static Option<Boolean> snapToSidewaysViewOption() {
         return Option.<Boolean>createBuilder()
-                .name(Text.literal("Snap Sideways View"))
-                .description(OptionDescription.of(Text.literal("Whether looking sideways via keybind should be subject to smoothing or not")))
+                .name(Component.literal("Snap Sideways View"))
+                .description(OptionDescription.of(Component.literal("Whether looking sideways via keybind should be subject to smoothing or not")))
                 .controller(TickBoxControllerBuilderImpl::new)
                 .binding(true, () -> BoatCamConfig.getConfig().snapSidewaysView, val -> BoatCamConfig.getConfig().snapSidewaysView = val)
                 .build();

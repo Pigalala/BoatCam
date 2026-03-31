@@ -1,8 +1,7 @@
 plugins {
-	id 'fabric-loom' version '1.15-SNAPSHOT'
-	id 'maven-publish'
+    id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
+    id 'maven-publish'
 }
-
 repositories {
 	mavenCentral()
 	maven { url 'https://maven.terraformersmc.com/' }
@@ -10,31 +9,22 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
 }
-
 processResources {
 	inputs.property "version", project.version
-	inputs.property "minecraft_version", minecraft_version
-	inputs.property "fabric_version", fabric_version
-	inputs.property "fabric_loader_version", loader_version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version,
-				"minecraft_version": minecraft_version,
-				"fabric_version": fabric_version,
-				"fabric_loader_version": loader_version
+		expand "version": project.version
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release.set 21
+    it.options.release.set 25
 }
 
 jar {

@@ -29,3 +29,7 @@ bin/
 run/
 logs/
 remappedSrc/
+
+# Mac
+.DS_Store
+._*

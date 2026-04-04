@@ -4,38 +4,36 @@ import boatcam.config.BoatCamConfig;
 import boatcam.config.BoatCamConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.option.Perspective;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.vehicle.AbstractBoatEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.CameraType;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
+import net.minecraft.world.phys.Vec3;
 
 import static boatcam.config.BoatCamConfig.getConfig;
 import static java.lang.Math.*;
-import static net.minecraft.client.util.InputUtil.Type.KEYSYM;
-import static net.minecraft.util.Formatting.GREEN;
+import static com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM;
+import static net.minecraft.ChatFormatting.GREEN;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_B;
 
 public final class BoatCamMod implements ClientModInitializer {
 
 	private static BoatCamMod INSTANCE;
 
-	private final KeyBinding.Category KEY_BINDING_CATEGORY = new KeyBinding.Category(Identifier.of("boatcam", "boatcam"));
+	private final KeyMapping.Category KEY_BINDING_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("boatcam", "boatcam"));
 
-	private final KeyBinding MENU = new KeyBinding("key.boatcam.menu", KEYSYM, GLFW_KEY_B, KEY_BINDING_CATEGORY);
-	private final KeyBinding TOGGLE = new KeyBinding("key.boatcam.toggle", KEYSYM, -1, KEY_BINDING_CATEGORY);
-	private final KeyBinding LOOK_BEHIND = new KeyBinding("key.boatcam.lookbehind", KEYSYM, -1, KEY_BINDING_CATEGORY);
-	private final KeyBinding LOOK_LEFT = new KeyBinding("key.boatcam.lookleft", KEYSYM, -1, KEY_BINDING_CATEGORY);
-	private final KeyBinding LOOK_RIGHT = new KeyBinding("key.boatcam.lookright", KEYSYM, -1, KEY_BINDING_CATEGORY);
+	private final KeyMapping MENU = new KeyMapping("key.boatcam.menu", KEYSYM, GLFW_KEY_B, KEY_BINDING_CATEGORY);
+	private final KeyMapping TOGGLE = new KeyMapping("key.boatcam.toggle", KEYSYM, -1, KEY_BINDING_CATEGORY);
+	private final KeyMapping LOOK_BEHIND = new KeyMapping("key.boatcam.lookbehind", KEYSYM, -1, KEY_BINDING_CATEGORY);
+	private final KeyMapping LOOK_LEFT = new KeyMapping("key.boatcam.lookleft", KEYSYM, -1, KEY_BINDING_CATEGORY);
+	private final KeyMapping LOOK_RIGHT = new KeyMapping("key.boatcam.lookright", KEYSYM, -1, KEY_BINDING_CATEGORY);
 
-	private Perspective perspective = null;
-	private Perspective previousPerspective = null;
-	private Vec3d boatPos = Vec3d.ZERO;
+	private CameraType perspective = null;
+	private CameraType previousPerspective = null;
+	private Vec3 boatPos = Vec3.ZERO;
 	private float previousYaw;
 	private boolean unfixedCameraActive = false;
 	private boolean lookingBehind = false;
@@ -53,29 +51,23 @@ public final class BoatCamMod implements ClientModInitializer {
 			throw new RuntimeException(e);
 		}
 
-		KeyBindingHelper.registerKeyBinding(MENU);
-		KeyBindingHelper.registerKeyBinding(TOGGLE);
-		KeyBindingHelper.registerKeyBinding(LOOK_BEHIND);
-		KeyBindingHelper.registerKeyBinding(LOOK_LEFT);
-		KeyBindingHelper.registerKeyBinding(LOOK_RIGHT);
 
-		ClientTickEvents.START_WORLD_TICK.register(this::onClientStartWorldTick);
+		ClientTickEvents.START_CLIENT_TICK.register(this::onClientStartWorldTick);
 	}
 
-	private void onClientStartWorldTick(ClientWorld world) {
-		MinecraftClient client = MinecraftClient.getInstance();
-
-		if (MENU.wasPressed()) {
-			client.setScreen(new BoatCamConfigScreen(client.currentScreen));
+	private void onClientStartWorldTick(Minecraft client) {
+		if (client.player == null) return;
+		if (MENU.consumeClick()) {
+			client.setScreen(new BoatCamConfigScreen(client.screen));
 			return;
 		}
 
-		if (TOGGLE.wasPressed()) {
+		if (TOGGLE.consumeClick()) {
 			getConfig().toggleBoatMode();
-			client.inGameHud.setOverlayMessage(Text.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").styled(s -> s.withColor(GREEN)), false);
+			client.gui.setOverlayMessage(Component.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").withStyle(s -> s.withColor(GREEN)), false);
 		}
 
-		if (getConfig().boatMode && client.player.getVehicle() instanceof AbstractBoatEntity boat) {
+		if (getConfig().boatMode && client.player.getVehicle() instanceof AbstractBoat boat) {
 			calculateYaw(client.player, boat);
 
 			// Was stationary but now moving and vice versa
@@ -83,37 +75,37 @@ public final class BoatCamMod implements ClientModInitializer {
 				unfixedCameraActive = !unfixedCameraActive;
 				if (unfixedCameraActive && getConfig().fixedPitch) {
 					if (lookingBehind) {
-						client.player.setPitch(-getConfig().pitch);
+						client.player.setXRot(-getConfig().pitch);
 					} else {
-						client.player.setPitch(getConfig().pitch);
+						client.player.setXRot(getConfig().pitch);
 					}
 				}
 			}
 
 			// first tick riding in boat mode
 			if (perspective == null) {
-				perspective = client.options.getPerspective();
+				perspective = client.options.getCameraType();
 
 				switch (getConfig().getPerspective()) {
-					case FIRST_PERSON -> client.options.setPerspective(Perspective.FIRST_PERSON);
+					case FIRST_PERSON -> client.options.setCameraType(CameraType.FIRST_PERSON);
 					case THIRD_PERSON -> {
 						if (lookingBehind) {
-							client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+							client.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
 						} else {
-							client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+							client.options.setCameraType(CameraType.THIRD_PERSON_BACK);
 						}
 					}
 				}
 
 				if (getConfig().fixedPitch) {
 					if (lookingBehind) {
-						client.player.setPitch(-getConfig().pitch);
+						client.player.setXRot(-getConfig().pitch);
 					} else {
-						client.player.setPitch(getConfig().pitch);
+						client.player.setXRot(getConfig().pitch);
 					}
 				} else {
 					if (lookingBehind) {
-						client.player.setPitch(-getConfig().pitch);
+						client.player.setXRot(-getConfig().pitch);
 					}
                 }
 			}
@@ -121,42 +113,42 @@ public final class BoatCamMod implements ClientModInitializer {
 			// first tick after disabling boat mode or leaving boat
 			if (perspective != null) {
 				if (!lookingBehind) {
-                    MinecraftClient.getInstance().options.setPerspective(perspective);
+                    Minecraft.getInstance().options.setCameraType(perspective);
                 }
                 perspective = null;
 			}
 		}
 
 		// if pressed state changed
-		if (LOOK_BEHIND.isPressed() != lookingBehind) {
-			lookingBehind = LOOK_BEHIND.isPressed();
+		if (LOOK_BEHIND.isDown() != lookingBehind) {
+			lookingBehind = LOOK_BEHIND.isDown();
 			invertPitch();
 			toggleLookBehindPerspective();
 		}
 	}
 
-	private void toggleLookBehindPerspective() {
-		MinecraftClient client = MinecraftClient.getInstance();
-		if (lookingBehind) {
-			previousPerspective = client.options.getPerspective();
-			client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
-		} else {
-			client.options.setPerspective(previousPerspective);
-			perspective = null;
-		}
-	}
+private void toggleLookBehindPerspective() {
+    Minecraft client = Minecraft.getInstance();
+    if (lookingBehind) {
+        previousPerspective = client.options.getCameraType();
+        client.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+    } else {
+        client.options.setCameraType(previousPerspective);
+        perspective = null;
+    }
+}
 
 	private void invertPitch() {
-		ClientPlayerEntity player = MinecraftClient.getInstance().player;
-		player.setPitch(-player.getPitch());
+		LocalPlayer player = Minecraft.getInstance().player;
+		player.setXRot(-player.getXRot());
 	}
 
-	private void calculateYaw(ClientPlayerEntity player, AbstractBoatEntity boat) {
-		float yaw = boat.getYaw();
+	private void calculateYaw(LocalPlayer player, AbstractBoat boat) {
+		float yaw = boat.getYRot();
 
 		if (!shouldOverrideCamera(boat)) {
 			previousYaw = yaw;
-			boatPos = boat.getEntityPos();
+			boatPos = boat.position();
 			return;
 		}
 
@@ -165,9 +157,9 @@ public final class BoatCamMod implements ClientModInitializer {
 
 		float directionOffset = 0f;
 		if (getConfig().snapSidewaysView) {
-			if (LOOK_LEFT.isPressed()) {
+			if (LOOK_LEFT.isDown()) {
 				yaw -= 90f;
-			} else if (LOOK_RIGHT.isPressed()) {
+			} else if (LOOK_RIGHT.isDown()) {
 				yaw += 90f;
 			} else {
 				if (dx != 0 || dz != 0) {
@@ -179,10 +171,10 @@ public final class BoatCamMod implements ClientModInitializer {
 				yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 			}
 		} else {
-			if (LOOK_LEFT.isPressed()) {
+			if (LOOK_LEFT.isDown()) {
 				yaw -= 90f;
 				directionOffset = -90f;
-			} else if (LOOK_RIGHT.isPressed()) {
+			} else if (LOOK_RIGHT.isDown()) {
 				yaw += 90f;
 				directionOffset = 90f;
 			}
@@ -198,22 +190,22 @@ public final class BoatCamMod implements ClientModInitializer {
 
 
 
-		player.setYaw(yaw);
+		player.setYRot(yaw);
 
 		previousYaw = yaw;
-		boatPos = boat.getEntityPos();
+		boatPos = boat.position();
 	}
 
 	// If returns true, look direction change should be cancelled
 	public boolean onLookDirectionChanging(double dx, double dy) {
-		ClientPlayerEntity player = MinecraftClient.getInstance().player;
-		if (!(player.getVehicle() instanceof AbstractBoatEntity b)) {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (!(player.getVehicle() instanceof AbstractBoat b)) {
 			return false;
 		}
 
 		if (getConfig().boatMode && shouldOverrideCamera(b)) {
 			if (dx != 0 || getConfig().fixedPitch && dy != 0) {
-				player.changeLookDirection(0, getConfig().fixedPitch ? 0 : dy);
+				player.turn(0, getConfig().fixedPitch ? 0 : dy);
 				return true;
 			}
 		}
@@ -221,8 +213,8 @@ public final class BoatCamMod implements ClientModInitializer {
 		return false;
 	}
 
-	boolean shouldOverrideCamera(AbstractBoatEntity boat) {
-		return !getConfig().stationaryLookAround || LOOK_LEFT.isPressed() || LOOK_RIGHT.isPressed() || boat.getVelocity().lengthSquared() >= 0.01 * 0.01;
+	boolean shouldOverrideCamera(AbstractBoat boat) {
+		return !getConfig().stationaryLookAround || LOOK_LEFT.isDown() || LOOK_RIGHT.isDown() || boat.getDeltaMovement().lengthSqr() >= 0.01 * 0.01;
 	}
 
 	public static BoatCamMod instance() {

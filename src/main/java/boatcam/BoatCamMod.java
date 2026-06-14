@@ -4,6 +4,7 @@ import boatcam.config.BoatCamConfig;
 import boatcam.config.BoatCamConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -23,13 +24,11 @@ public final class BoatCamMod implements ClientModInitializer {
 
 	private static BoatCamMod INSTANCE;
 
-	private final KeyMapping.Category KEY_BINDING_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("boatcam", "boatcam"));
-
-	private final KeyMapping MENU = new KeyMapping("key.boatcam.menu", KEYSYM, GLFW_KEY_B, KEY_BINDING_CATEGORY);
-	private final KeyMapping TOGGLE = new KeyMapping("key.boatcam.toggle", KEYSYM, -1, KEY_BINDING_CATEGORY);
-	private final KeyMapping LOOK_BEHIND = new KeyMapping("key.boatcam.lookbehind", KEYSYM, -1, KEY_BINDING_CATEGORY);
-	private final KeyMapping LOOK_LEFT = new KeyMapping("key.boatcam.lookleft", KEYSYM, -1, KEY_BINDING_CATEGORY);
-	private final KeyMapping LOOK_RIGHT = new KeyMapping("key.boatcam.lookright", KEYSYM, -1, KEY_BINDING_CATEGORY);
+    private KeyMapping menuKey;
+	private KeyMapping toggleKey;
+	private KeyMapping lookBehindKey;
+	private KeyMapping lookLeftKey;
+	private KeyMapping lookRightKey;
 
 	private CameraType perspective = null;
 	private CameraType previousPerspective = null;
@@ -51,18 +50,24 @@ public final class BoatCamMod implements ClientModInitializer {
 			throw new RuntimeException(e);
 		}
 
+        KeyMapping.Category keyBindingCategory = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("boatcam", "boatcam"));
+		this.menuKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.menu", KEYSYM, GLFW_KEY_B, keyBindingCategory));
+		this.toggleKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.toggle", KEYSYM, -1, keyBindingCategory));
+		this.lookBehindKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookbehind", KEYSYM, -1, keyBindingCategory));
+		this.lookLeftKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookleft", KEYSYM, -1, keyBindingCategory));
+		this.lookRightKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookright", KEYSYM, -1, keyBindingCategory));
 
 		ClientTickEvents.START_CLIENT_TICK.register(this::onClientStartWorldTick);
 	}
 
 	private void onClientStartWorldTick(Minecraft client) {
 		if (client.player == null) return;
-		if (MENU.consumeClick()) {
+		if (menuKey.consumeClick()) {
 			client.setScreen(new BoatCamConfigScreen(client.screen));
 			return;
 		}
 
-		if (TOGGLE.consumeClick()) {
+		if (toggleKey.consumeClick()) {
 			getConfig().toggleBoatMode();
 			client.gui.setOverlayMessage(Component.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").withStyle(s -> s.withColor(GREEN)), false);
 		}
@@ -120,8 +125,8 @@ public final class BoatCamMod implements ClientModInitializer {
 		}
 
 		// if pressed state changed
-		if (LOOK_BEHIND.isDown() != lookingBehind) {
-			lookingBehind = LOOK_BEHIND.isDown();
+		if (lookBehindKey.isDown() != lookingBehind) {
+			lookingBehind = lookBehindKey.isDown();
 			invertPitch();
 			toggleLookBehindPerspective();
 		}
@@ -157,9 +162,9 @@ private void toggleLookBehindPerspective() {
 
 		float directionOffset = 0f;
 		if (getConfig().snapSidewaysView) {
-			if (LOOK_LEFT.isDown()) {
+			if (lookLeftKey.isDown()) {
 				yaw -= 90f;
-			} else if (LOOK_RIGHT.isDown()) {
+			} else if (lookRightKey.isDown()) {
 				yaw += 90f;
 			} else {
 				if (dx != 0 || dz != 0) {
@@ -171,10 +176,10 @@ private void toggleLookBehindPerspective() {
 				yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
 			}
 		} else {
-			if (LOOK_LEFT.isDown()) {
+			if (lookLeftKey.isDown()) {
 				yaw -= 90f;
 				directionOffset = -90f;
-			} else if (LOOK_RIGHT.isDown()) {
+			} else if (lookRightKey.isDown()) {
 				yaw += 90f;
 				directionOffset = 90f;
 			}
@@ -214,7 +219,7 @@ private void toggleLookBehindPerspective() {
 	}
 
 	boolean shouldOverrideCamera(AbstractBoat boat) {
-		return !getConfig().stationaryLookAround || LOOK_LEFT.isDown() || LOOK_RIGHT.isDown() || boat.getDeltaMovement().lengthSqr() >= 0.01 * 0.01;
+		return !getConfig().stationaryLookAround || lookLeftKey.isDown() || lookRightKey.isDown() || boat.getDeltaMovement().lengthSqr() >= 0.01 * 0.01;
 	}
 
 	public static BoatCamMod instance() {

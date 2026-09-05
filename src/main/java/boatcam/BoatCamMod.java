@@ -5,6 +5,8 @@ import boatcam.cam.BoatCamera;
 import boatcam.cam.NonBoatCamera;
 import boatcam.config.BoatCamConfig;
 import boatcam.config.BoatCamConfigScreen;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.CameraType;
@@ -19,6 +21,10 @@ import static boatcam.config.BoatCamConfig.getConfig;
 import static net.minecraft.ChatFormatting.GREEN;
 
 public final class BoatCamMod implements ClientModInitializer {
+
+	public static final Gson GSON = new GsonBuilder()
+			.excludeFieldsWithoutExposeAnnotation()
+			.create();
 
 	private static BoatCamMod INSTANCE;
 
@@ -54,7 +60,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		}
 
 		if (keybinds.menu().consumeClick()) {
-			client.setScreen(new BoatCamConfigScreen(client.screen));
+			client.setScreen(new BoatCamConfigScreen(client.screen).screen);
 			return;
 		}
 

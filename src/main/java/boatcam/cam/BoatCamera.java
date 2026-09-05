@@ -3,6 +3,8 @@ package boatcam.cam;
 import boatcam.AngleUtil;
 import boatcam.BoatCamKeybinds;
 import boatcam.BoatCamMod;
+import boatcam.yaw.mode.Legacy;
+import boatcam.yaw.mode.Velocity;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -16,12 +18,10 @@ public class BoatCamera implements BoatCam {
     private final LocalPlayer player;
     private final AbstractBoat boat;
     private final CameraType originalCameraType;
-
+    public boolean overrideCamera;
     private Vec3 prevBoatPos;
     private float previousYaw;
-
     private boolean lookingBehind;
-    public boolean overrideCamera;
 
     public BoatCamera(LocalPlayer player, AbstractBoat boat) {
         this.player = player;
@@ -37,7 +37,8 @@ public class BoatCamera implements BoatCam {
         switch (getConfig().perspective) {
             case FIRST_PERSON -> Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
             case THIRD_PERSON -> Minecraft.getInstance().options.setCameraType(CameraType.THIRD_PERSON_BACK);
-            default -> {}
+            default -> {
+            }
         }
 
         if (getConfig().fixedPitch) {
@@ -84,38 +85,65 @@ public class BoatCamera implements BoatCam {
         double dx = boat.getX() - prevBoatPos.x;
         double dz = boat.getZ() - prevBoatPos.z;
 
-        float directionOffset = 0f;
-        if (getConfig().snapSidewaysView) {
-            if (lookLeft) {
-                yaw -= 90f;
-            } else if (lookRight) {
-                yaw += 90f;
-            } else {
+        // TODO: Implement look left and look right, maybe
+        switch (getConfig().cachedYawMode) {
+            case Legacy legacy -> {
                 if (dx != 0 || dz != 0) {
                     float vel = (float) Math.hypot(dz, dx);
                     float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
                     float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
                     yaw = AngleUtil.lerp(t, yaw, direction);
                 }
-                yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
+                yaw = AngleUtil.lerp(legacy.smoothness / 100f, previousYaw, yaw);
             }
-        } else {
-            if (lookLeft) {
-                yaw -= 90f;
-                directionOffset = -90f;
-            } else if (lookRight) {
-                yaw += 90f;
-                directionOffset = 90f;
-            }
+            case Velocity velocity -> {
+                float strength = velocity.strength;
+                if (dx != 0 || dz != 0) {
+                    double yawRad = Math.toRadians(yaw + 90);
+                    double yawUnitX = Math.cos(yawRad);
+                    double yawUnitZ = Math.sin(yawRad);
 
-            if (dx != 0 || dz != 0) {
-                float vel = (float) Math.hypot(dz, dx);
-                float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
-                float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-                yaw = AngleUtil.lerp(t, yaw, direction + directionOffset);
+                    double cameraX = dx * strength + 1.28f * yawUnitX * (100 - strength);
+                    double cameraZ = dz * strength + 1.28f * yawUnitZ * (100 - strength);
+
+                    yaw = (float) Math.toDegrees(Math.atan2(cameraZ, cameraX)) - 90;
+                }
+                yaw = AngleUtil.lerp(strength / 100f, previousYaw, yaw);
             }
-            yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
         }
+
+//        float directionOffset = 0f;
+//        if (getConfig().snapSidewaysView) {
+//            if (lookLeft) {
+//                yaw -= 90f;
+//            } else if (lookRight) {
+//                yaw += 90f;
+//            } else {
+//                if (dx != 0 || dz != 0) {
+//                    float vel = (float) Math.hypot(dz, dx);
+//                    float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
+//                    float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
+//                    yaw = AngleUtil.lerp(t, yaw, direction);
+//                }
+//                yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
+//            }
+//        } else {
+//            if (lookLeft) {
+//                yaw -= 90f;
+//                directionOffset = -90f;
+//            } else if (lookRight) {
+//                yaw += 90f;
+//                directionOffset = 90f;
+//            }
+//
+//            if (dx != 0 || dz != 0) {
+//                float vel = (float) Math.hypot(dz, dx);
+//                float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
+//                float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
+//                yaw = AngleUtil.lerp(t, yaw, direction + directionOffset);
+//            }
+//            yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
+//        }
 
         previousYaw = yaw;
         prevBoatPos = boat.position();
@@ -132,7 +160,8 @@ public class BoatCamera implements BoatCam {
                 switch (getConfig().perspective) {
                     case FIRST_PERSON -> Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
                     case THIRD_PERSON -> Minecraft.getInstance().options.setCameraType(CameraType.THIRD_PERSON_BACK);
-                    default -> {}
+                    default -> {
+                    }
                 }
             }
 

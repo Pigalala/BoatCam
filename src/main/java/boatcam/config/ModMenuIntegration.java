@@ -7,6 +7,6 @@ public final class ModMenuIntegration implements ModMenuApi {
 
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return BoatCamConfigScreen::new;
+        return screen -> new BoatCamConfigScreen(screen).screen;
     }
 }

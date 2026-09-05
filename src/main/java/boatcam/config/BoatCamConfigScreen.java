@@ -1,45 +1,25 @@
 package boatcam.config;
 
-import dev.isxander.yacl3.api.ConfigCategory;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.OptionDescription;
-import dev.isxander.yacl3.api.YetAnotherConfigLib;
+import boatcam.yaw.mode.YawMode;
+import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
-import dev.isxander.yacl3.gui.YACLScreen;
+import dev.isxander.yacl3.impl.controller.DropdownStringControllerBuilderImpl;
 import dev.isxander.yacl3.impl.controller.TickBoxControllerBuilderImpl;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-public class BoatCamConfigScreen extends YACLScreen {
+import java.util.function.Consumer;
+
+public class BoatCamConfigScreen {
+
+    private final Screen parent;
+    public Screen screen;
 
     public BoatCamConfigScreen(Screen parent) {
-        super(createConfig(), parent);
-    }
-
-    static YetAnotherConfigLib createConfig() {
-        return YetAnotherConfigLib.createBuilder()
-                .title(Component.literal("BoatCam"))
-                .category(ConfigCategory.createBuilder()
-                        .name(Component.literal("BoatCam"))
-                        .option(boatModeOption())
-                        .option(smoothnessOption())
-                        .option(fixedPitchOption())
-                        .option(pitchOption())
-                        .option(stationaryLookAroundOption())
-                        .option(perspectiveOption())
-                        .option(turnLimitDisabled())
-                        .option(snapToSidewaysViewOption())
-                        .build()
-                )
-                .save(() -> {
-                    try {
-                        BoatCamConfig.getConfig().save();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e); // :P
-                    }
-                })
-                .build();
+        this.parent = parent;
+        this.screen = createConfig().generateScreen(parent);
     }
 
     static Option<Boolean> boatModeOption() {
@@ -51,16 +31,20 @@ public class BoatCamConfigScreen extends YACLScreen {
                 .build();
     }
 
-    static Option<Integer> smoothnessOption() {
-        return Option.<Integer>createBuilder()
-                .name(Component.literal("Smoothness"))
-                .description(OptionDescription.of(Component.literal("1 - Smooth camera, might even lag behind.\n100 - Camera angle might change very abruptly.")))
-                .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                        .range(1, 100)
-                        .formatValue(val -> Component.literal(String.valueOf(val)))
-                        .step(1)
+    static Option<String> yawModeOption(Consumer<String> onChange) {
+        return Option.<String>createBuilder()
+                .name(Component.literal("Yaw mode"))
+                .description(OptionDescription.of(
+                        Component.literal("How the yaw should be calculated in boat mode"),
+                        Component.literal("Legacy - The yaw tends towards the direction the boat is facing"),
+                        Component.literal("Velocity - The yaw follows the velocity of the boat")
+                ))
+                .controller(op -> new DropdownStringControllerBuilderImpl(op)
+                        .allowAnyValue(false)
+                        .allowEmptyValue(false)
+                        .values(YawMode.getTypeNames())
                 )
-                .binding(50, () -> BoatCamConfig.getConfig().smoothness, val -> BoatCamConfig.getConfig().smoothness = val)
+                .binding("velocity", () -> BoatCamConfig.getConfig().getSelectedYawModeName(), onChange)
                 .build();
     }
 
@@ -123,5 +107,49 @@ public class BoatCamConfigScreen extends YACLScreen {
                 .controller(TickBoxControllerBuilderImpl::new)
                 .binding(true, () -> BoatCamConfig.getConfig().snapSidewaysView, val -> BoatCamConfig.getConfig().snapSidewaysView = val)
                 .build();
+    }
+
+    YetAnotherConfigLib createConfig() {
+        return YetAnotherConfigLib.createBuilder()
+                .title(Component.literal("BoatCam"))
+                .category(ConfigCategory.createBuilder()
+                        .name(Component.literal("BoatCam"))
+                        .option(yawModeOption(this::onYawModeChange))
+                        .group(BoatCamConfig.getConfig().cachedYawMode.createOptions())
+                        .group(OptionGroup.createBuilder()
+                                .option(boatModeOption())
+                                .option(fixedPitchOption())
+                                .option(pitchOption())
+                                .option(stationaryLookAroundOption())
+                                .option(perspectiveOption())
+                                .option(turnLimitDisabled())
+                                .option(snapToSidewaysViewOption())
+                                .build()
+                        )
+                        .build()
+                )
+                .save(() -> {
+                    try {
+                        BoatCamConfig.getConfig().save();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e); // :P
+                    }
+                })
+                .build();
+    }
+
+    void onYawModeChange(String newValue) {
+        BoatCamConfig.getConfig().setSelectedYawModeName(newValue);
+
+        YawMode yawMode = BoatCamConfig.getConfig().yawModes.get(newValue);
+        if (yawMode == null) {
+            yawMode = YawMode.newYawModeFromType(newValue);
+            BoatCamConfig.getConfig().yawModes.put(newValue, yawMode);
+        }
+
+        if (Minecraft.getInstance().screen == this.screen) {
+            this.screen = createConfig().generateScreen(this.parent);
+            Minecraft.getInstance().setScreen(screen);
+        }
     }
 }

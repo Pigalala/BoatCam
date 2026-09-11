@@ -6,7 +6,7 @@ import dev.isxander.yacl3.api.OptionGroup;
 import java.util.Arrays;
 import java.util.List;
 
-public sealed interface YawMode permits Legacy, Velocity {
+public sealed interface YawMode permits Directional, Velocity {
 
     OptionGroup createOptions();
 

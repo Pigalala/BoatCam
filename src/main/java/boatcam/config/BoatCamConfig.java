@@ -2,7 +2,7 @@ package boatcam.config;
 
 import boatcam.BoatCamMod;
 import boatcam.yaw.YawModeMapAdapter;
-import boatcam.yaw.mode.Legacy;
+import boatcam.yaw.mode.Directional;
 import boatcam.yaw.mode.Velocity;
 import boatcam.yaw.mode.YawMode;
 import com.google.gson.JsonSyntaxException;
@@ -13,7 +13,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 
 public final class BoatCamConfig {
@@ -46,6 +45,7 @@ public final class BoatCamConfig {
     @Expose(serialize = false)
     public Integer smoothness;
 
+    /// Currently selected yaw mode
     public YawMode cachedYawMode;
 
     private BoatCamConfig() {}
@@ -61,17 +61,19 @@ public final class BoatCamConfig {
             if (smoothness == null) {
                 var mode = new Velocity();
                 yawModes.put(mode.typeName(), mode);
-                selectedYawMode = "velocity";
+                selectedYawMode = mode.typeName();
             } else {
                 // Poopy migration
-                var mode = new Legacy();
+                var mode = new Directional();
                 mode.smoothness = Math.clamp(smoothness, 0, 100);
                 yawModes.put(mode.typeName(), mode);
-                selectedYawMode = "legacy";
+                selectedYawMode = mode.typeName();
             }
         }
 
         cachedYawMode = getYawMode();
+
+        save();
     }
 
     public String getSelectedYawModeName() {
@@ -79,7 +81,6 @@ public final class BoatCamConfig {
     }
 
     public void setSelectedYawModeName(String name) {
-        System.out.println("Set to " + name);
         this.selectedYawMode = name;
         cachedYawMode = getYawMode();
     }

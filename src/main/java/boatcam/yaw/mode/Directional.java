@@ -8,8 +8,8 @@ import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import net.minecraft.network.chat.Component;
 
-@TypeName("legacy")
-public final class Legacy implements boatcam.yaw.mode.YawMode {
+@TypeName("directional")
+public final class Directional implements YawMode {
 
     @Expose
     public int smoothness = 50;

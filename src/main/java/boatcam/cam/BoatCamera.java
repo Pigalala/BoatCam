@@ -3,7 +3,7 @@ package boatcam.cam;
 import boatcam.AngleUtil;
 import boatcam.BoatCamKeybinds;
 import boatcam.BoatCamMod;
-import boatcam.yaw.mode.Legacy;
+import boatcam.yaw.mode.Directional;
 import boatcam.yaw.mode.Velocity;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
@@ -87,14 +87,14 @@ public class BoatCamera implements BoatCam {
 
         // TODO: Implement look left and look right, maybe
         switch (getConfig().cachedYawMode) {
-            case Legacy legacy -> {
+            case Directional directional -> {
                 if (dx != 0 || dz != 0) {
                     float vel = (float) Math.hypot(dz, dx);
                     float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
                     float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
                     yaw = AngleUtil.lerp(t, yaw, direction);
                 }
-                yaw = AngleUtil.lerp(legacy.smoothness / 100f, previousYaw, yaw);
+                yaw = AngleUtil.lerp(directional.smoothness / 100f, previousYaw, yaw);
             }
             case Velocity velocity -> {
                 float strength = velocity.strength;
@@ -103,6 +103,7 @@ public class BoatCamera implements BoatCam {
                     double yawUnitX = Math.cos(yawRad);
                     double yawUnitZ = Math.sin(yawRad);
 
+                    // Magic numbers are the best numbers
                     double cameraX = dx * strength + 1.28f * yawUnitX * (100 - strength);
                     double cameraZ = dz * strength + 1.28f * yawUnitZ * (100 - strength);
 

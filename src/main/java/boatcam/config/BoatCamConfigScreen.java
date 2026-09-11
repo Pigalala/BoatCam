@@ -139,13 +139,13 @@ public class BoatCamConfigScreen {
     }
 
     void onYawModeChange(String newValue) {
-        BoatCamConfig.getConfig().setSelectedYawModeName(newValue);
-
         YawMode yawMode = BoatCamConfig.getConfig().yawModes.get(newValue);
         if (yawMode == null) {
             yawMode = YawMode.newYawModeFromType(newValue);
             BoatCamConfig.getConfig().yawModes.put(newValue, yawMode);
         }
+
+        BoatCamConfig.getConfig().setSelectedYawModeName(newValue);
 
         if (Minecraft.getInstance().screen == this.screen) {
             this.screen = createConfig().generateScreen(this.parent);

@@ -5,6 +5,7 @@ import boatcam.config.BoatCamConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
@@ -16,7 +17,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 import static boatcam.config.BoatCamConfig.getConfig;
-import static java.lang.Math.*;
 import static net.minecraft.client.util.InputUtil.Type.KEYSYM;
 import static net.minecraft.util.Formatting.GREEN;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_B;
@@ -60,6 +60,21 @@ public final class BoatCamMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(LOOK_RIGHT);
 
 		ClientTickEvents.START_WORLD_TICK.register(this::onClientStartWorldTick);
+
+		HudElementRegistry.addLast(Identifier.of("boatcam", "timing_hud"), (ctx, tickCounter) -> {
+			if (MinecraftClient.getInstance().player.getVehicle() instanceof AbstractBoatEntity boat) {
+				ctx.getMatrices().pushMatrix();
+
+				final int scaledWidth = ctx.getScaledWindowWidth();
+				final int scaledHeight = ctx.getScaledWindowHeight();
+
+				int centerX = scaledWidth / 2;
+
+				ctx.fill(centerX - 1, 0, centerX + 1, scaledHeight, 0xc0f38aff);
+				ctx.getMatrices().popMatrix();
+			}
+		});
+
 	}
 
 	private void onClientStartWorldTick(ClientWorld world) {
@@ -162,40 +177,17 @@ public final class BoatCamMod implements ClientModInitializer {
 		double dx = boat.getX() - boatPos.x;
 		double dz = boat.getZ() - boatPos.z;
 
-		float directionOffset = 0f;
-		if (getConfig().snapSidewaysView) {
-			if (LOOK_LEFT.isPressed()) {
-				yaw -= 90f;
-			} else if (LOOK_RIGHT.isPressed()) {
-				yaw += 90f;
-			} else {
-				if (dx != 0 || dz != 0) {
-					float vel = (float) hypot(dz, dx);
-					float direction = (float) toDegrees(atan2(dz, dx)) - 90;
-					float t = min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-					yaw = AngleUtil.lerp(t, yaw, direction);
-				}
-				yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
-			}
-		} else {
-			if (LOOK_LEFT.isPressed()) {
-				yaw -= 90f;
-				directionOffset = -90f;
-			} else if (LOOK_RIGHT.isPressed()) {
-				yaw += 90f;
-				directionOffset = 90f;
-			}
+		float strength = 100 - getConfig().smoothness;
+		if (dx != 0 || dz != 0) {
+			double yawRad = Math.toRadians(yaw + 90);
+			double yawUnitX = Math.cos(yawRad);
+			double yawUnitZ = Math.sin(yawRad);
 
-			if (dx != 0 || dz != 0) {
-				float vel = (float) hypot(dz, dx);
-				float direction = (float) toDegrees(atan2(dz, dx)) - 90;
-				float t = min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-				yaw = AngleUtil.lerp(t, yaw, direction + directionOffset);
-			}
-			yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
+			double cameraX = dx * strength + 1.28f * yawUnitX * (100 - strength);
+			double cameraZ = dz * strength + 1.28f * yawUnitZ * (100 - strength);
+			yaw = (float) Math.toDegrees(Math.atan2(cameraZ, cameraX)) - 90;
 		}
-
-
+		yaw = AngleUtil.lerp(strength / 100f, previousYaw, yaw);
 
 		player.setYaw(yaw);
 

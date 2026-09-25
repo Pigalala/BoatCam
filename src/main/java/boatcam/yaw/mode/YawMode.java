@@ -1,44 +1,44 @@
 package boatcam.yaw.mode;
 
-import boatcam.yaw.TypeName;
+import boatcam.yaw.ModeId;
 import dev.isxander.yacl3.api.OptionGroup;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 
 public sealed interface YawMode permits Directional, Velocity {
+
+    Map<String, Class<? extends YawMode>> MODES = createModesMap();
 
     OptionGroup createOptions();
 
     default String typeName() {
-        return getClass().getAnnotation(TypeName.class).value();
+        return typeName(getClass());
     }
 
-    static List<String> getTypeNames() {
-        return Arrays.stream(YawMode.class.getPermittedSubclasses())
-                .map(c -> c.getAnnotation(TypeName.class).value())
-                .toList();
+    static String typeName(Class<? extends YawMode> yawModeClass) {
+        return yawModeClass.getAnnotation(ModeId.class).value();
     }
 
-    static YawMode newYawModeFromType(String typeName) {
-        return Arrays.stream(YawMode.class.getPermittedSubclasses())
-                .filter(c -> c.getAnnotation(TypeName.class).value().equals(typeName))
-                .map(c -> {
-                    try {
-                        return (YawMode) c.getConstructor().newInstance();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .findAny()
-                .orElse(null);
+    static YawMode newYawModeFromType(Class<? extends YawMode> yawModeClass) {
+        try {
+            return yawModeClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SuppressWarnings("unchecked")
-    static Class<? extends YawMode> getClassFromTypeName(String name) {
-        return (Class<? extends YawMode>) Arrays.stream(YawMode.class.getPermittedSubclasses())
-                .filter(c -> c.getAnnotation(TypeName.class).value().equals(name))
-                .findAny()
-                .orElse(null);
+    static Map<String, Class<? extends YawMode>> createModesMap() {
+        Class<?>[] permitted = YawMode.class.getPermittedSubclasses();
+        var map = new Object2ObjectArrayMap<String, Class<? extends YawMode>>(permitted.length);
+
+        for (Class<?> subclass : permitted) {
+            var subclassFr = (Class<? extends YawMode>) subclass;
+            map.put(typeName(subclassFr), subclassFr);
+        }
+
+        return Object2ObjectMaps.unmodifiable(map);
     }
 }

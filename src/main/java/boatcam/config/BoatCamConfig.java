@@ -71,6 +71,11 @@ public final class BoatCamConfig {
             }
         }
 
+        // We want to make sure the yawModes map is always full
+        for (Class<? extends YawMode> yawMode : YawMode.MODES.values()) {
+            yawModes.putIfAbsent(YawMode.typeName(yawMode), YawMode.newYawModeFromType(yawMode));
+        }
+
         cachedYawMode = getYawMode();
 
         save();
@@ -133,8 +138,10 @@ public final class BoatCamConfig {
         BoatCamConfig config;
         try {
             config = BoatCamMod.GSON.fromJson(Files.readString(CONFIG_PATH), BoatCamConfig.class);
-        } catch (JsonSyntaxException | IOException e) {
-            throw new RuntimeException("Could not read config", e);
+
+            if (config == null) {
+                throw new RuntimeException("config invalid");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             config = new BoatCamConfig();

@@ -1,6 +1,6 @@
 package boatcam.yaw.mode;
 
-import boatcam.yaw.TypeName;
+import boatcam.yaw.ModeId;
 import com.google.gson.annotations.Expose;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionDescription;
@@ -8,7 +8,7 @@ import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import net.minecraft.network.chat.Component;
 
-@TypeName("velocity")
+@ModeId("velocity")
 public final class Velocity implements YawMode {
 
     @Expose

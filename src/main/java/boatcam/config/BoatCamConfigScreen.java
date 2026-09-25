@@ -1,5 +1,6 @@
 package boatcam.config;
 
+import boatcam.yaw.mode.Velocity;
 import boatcam.yaw.mode.YawMode;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
@@ -10,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class BoatCamConfigScreen {
@@ -31,20 +33,22 @@ public class BoatCamConfigScreen {
                 .build();
     }
 
-    static Option<String> yawModeOption(Consumer<String> onChange) {
-        return Option.<String>createBuilder()
+    static Option<Class<? extends YawMode>> yawModeOption() {
+        return Option.<Class<? extends YawMode>>createBuilder()
                 .name(Component.literal("Yaw mode"))
                 .description(OptionDescription.of(
                         Component.literal("How the yaw should be calculated in boat mode"),
                         Component.literal("Legacy - The yaw tends towards the direction the boat is facing"),
                         Component.literal("Velocity - The yaw follows the velocity of the boat")
                 ))
-                .controller(op -> new DropdownStringControllerBuilderImpl(op)
-                        .allowAnyValue(false)
-                        .allowEmptyValue(false)
-                        .values(YawMode.getTypeNames())
+                .customController(op ->
+                        new IterableCyclingController<>(op, YawMode.MODES.values(), mode -> Component.literal(YawMode.typeName(mode)))
                 )
-                .binding("velocity", () -> BoatCamConfig.getConfig().getSelectedYawModeName(), onChange)
+                .binding(
+                        Velocity.class,
+                        () -> YawMode.MODES.get(BoatCamConfig.getConfig().getSelectedYawModeName()),
+                        mode -> BoatCamConfig.getConfig().setSelectedYawModeName(YawMode.typeName(mode))
+                )
                 .build();
     }
 
@@ -110,24 +114,28 @@ public class BoatCamConfigScreen {
     }
 
     YetAnotherConfigLib createConfig() {
+        var categoryBuilder = ConfigCategory.createBuilder()
+                .name(Component.literal("BoatCam"))
+                .option(yawModeOption());
+
+        for (YawMode yawMode : BoatCamConfig.getConfig().yawModes.values()) {
+            categoryBuilder.group(yawMode.createOptions());
+        }
+
+        categoryBuilder.group(OptionGroup.createBuilder()
+                .option(boatModeOption())
+                .option(fixedPitchOption())
+                .option(pitchOption())
+                .option(stationaryLookAroundOption())
+                .option(perspectiveOption())
+                .option(turnLimitDisabled())
+                .option(snapToSidewaysViewOption())
+                .build()
+        );
+
         return YetAnotherConfigLib.createBuilder()
                 .title(Component.literal("BoatCam"))
-                .category(ConfigCategory.createBuilder()
-                        .name(Component.literal("BoatCam"))
-                        .option(yawModeOption(this::onYawModeChange))
-                        .group(BoatCamConfig.getConfig().cachedYawMode.createOptions())
-                        .group(OptionGroup.createBuilder()
-                                .option(boatModeOption())
-                                .option(fixedPitchOption())
-                                .option(pitchOption())
-                                .option(stationaryLookAroundOption())
-                                .option(perspectiveOption())
-                                .option(turnLimitDisabled())
-                                .option(snapToSidewaysViewOption())
-                                .build()
-                        )
-                        .build()
-                )
+                .category(categoryBuilder.build())
                 .save(() -> {
                     try {
                         BoatCamConfig.getConfig().save();
@@ -136,20 +144,5 @@ public class BoatCamConfigScreen {
                     }
                 })
                 .build();
-    }
-
-    void onYawModeChange(String newValue) {
-        YawMode yawMode = BoatCamConfig.getConfig().yawModes.get(newValue);
-        if (yawMode == null) {
-            yawMode = YawMode.newYawModeFromType(newValue);
-            BoatCamConfig.getConfig().yawModes.put(newValue, yawMode);
-        }
-
-        BoatCamConfig.getConfig().setSelectedYawModeName(newValue);
-
-        if (Minecraft.getInstance().gui.screen() == this.screen) {
-            this.screen = createConfig().generateScreen(this.parent);
-            Minecraft.getInstance().gui.setScreen(screen);
-        }
     }
 }

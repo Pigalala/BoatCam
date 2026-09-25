@@ -14,7 +14,7 @@ public class YawModeMapAdapter implements JsonSerializer<Map<String, YawMode>>, 
 
         for (var entry : jsonElement.getAsJsonObject().entrySet()) {
             String key = entry.getKey();
-            Class<? extends YawMode> yawModeType = YawMode.getClassFromTypeName(key);
+            Class<? extends YawMode> yawModeType = YawMode.MODES.get(key);
             if (yawModeType == null) {
                 continue;
             }

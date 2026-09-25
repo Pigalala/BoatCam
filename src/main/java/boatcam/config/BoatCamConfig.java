@@ -126,6 +126,7 @@ public final class BoatCamConfig {
     public static void load() {
         if (Files.notExists(CONFIG_PATH)) {
             INSTANCE = new BoatCamConfig();
+            INSTANCE.validatePostLoad();
             return;
         }
 

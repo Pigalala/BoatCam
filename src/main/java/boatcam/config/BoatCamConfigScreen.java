@@ -147,9 +147,9 @@ public class BoatCamConfigScreen {
 
         BoatCamConfig.getConfig().setSelectedYawModeName(newValue);
 
-        if (Minecraft.getInstance().screen == this.screen) {
+        if (Minecraft.getInstance().gui.screen() == this.screen) {
             this.screen = createConfig().generateScreen(this.parent);
-            Minecraft.getInstance().setScreen(screen);
+            Minecraft.getInstance().gui.setScreen(screen);
         }
     }
 }

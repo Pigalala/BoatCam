@@ -60,13 +60,13 @@ public final class BoatCamMod implements ClientModInitializer {
 		}
 
 		if (keybinds.menu().consumeClick()) {
-			client.setScreen(new BoatCamConfigScreen(client.screen).screen);
+			client.gui.setScreen(new BoatCamConfigScreen(client.gui.screen()).screen);
 			return;
 		}
 
 		if (keybinds.toggle().consumeClick()) {
 			getConfig().toggleBoatMode();
-			client.gui.setOverlayMessage(Component.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").withStyle(s -> s.withColor(GREEN)), false);
+			client.gui.hud.setOverlayMessage(Component.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").withStyle(s -> s.withColor(GREEN)), false);
 		}
 
 		tickActiveCam(client);

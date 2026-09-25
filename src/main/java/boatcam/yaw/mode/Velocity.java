@@ -17,6 +17,7 @@ public final class Velocity implements YawMode {
     @Override
     public OptionGroup createOptions() {
         return OptionGroup.createBuilder()
+                .name(Component.literal("Velocity mode options"))
                 .option(
                         Option.<Integer>createBuilder()
                                 .name(Component.literal("Strength"))

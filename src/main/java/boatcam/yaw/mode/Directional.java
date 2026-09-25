@@ -17,6 +17,7 @@ public final class Directional implements YawMode {
     @Override
     public OptionGroup createOptions() {
         return OptionGroup.createBuilder()
+                .name(Component.literal("Directional mode options"))
                 .option(
                         Option.<Integer>createBuilder()
                                 .name(Component.literal("Smoothness"))

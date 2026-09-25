@@ -21,7 +21,7 @@ public final class Velocity implements YawMode {
                 .option(
                         Option.<Integer>createBuilder()
                                 .name(Component.literal("Strength"))
-                                .description(OptionDescription.of(Component.literal("1 - Camera follows velocity tightly, feels close to non-boatcam camera.\n100 - Camera is super lazy.")))
+                                .description(OptionDescription.of(Component.literal("0 - Camera feels super lazy.\n100 - Camera follows boat velocity tightly.")))
                                 .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                         .range(0, 100)
                                         .formatValue(val -> Component.literal(String.valueOf(val)))

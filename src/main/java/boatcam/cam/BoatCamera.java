@@ -85,66 +85,38 @@ public class BoatCamera implements BoatCam {
         double dx = boat.getX() - prevBoatPos.x;
         double dz = boat.getZ() - prevBoatPos.z;
 
-        // TODO: Implement look left and look right, maybe
-        switch (getConfig().cachedYawMode) {
-            case Directional directional -> {
-                if (dx != 0 || dz != 0) {
-                    float vel = (float) Math.hypot(dz, dx);
-                    float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
-                    float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-                    yaw = AngleUtil.lerp(t, yaw, direction);
+        if (lookLeft) {
+            yaw -= 90f;
+        } else if (lookRight) {
+            yaw += 90f;
+        } else {
+            switch (getConfig().cachedYawMode) {
+                case Directional directional -> {
+                    if (dx != 0 || dz != 0) {
+                        float vel = (float) Math.hypot(dz, dx);
+                        float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
+                        float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
+                        yaw = AngleUtil.lerp(t, yaw, direction);
+                    }
+                    yaw = AngleUtil.lerp(directional.smoothness / 100f, previousYaw, yaw);
                 }
-                yaw = AngleUtil.lerp(directional.smoothness / 100f, previousYaw, yaw);
-            }
-            case Velocity velocity -> {
-                float strength = velocity.strength;
-                if (dx != 0 || dz != 0) {
-                    double yawRad = Math.toRadians(yaw + 90);
-                    double yawUnitX = Math.cos(yawRad);
-                    double yawUnitZ = Math.sin(yawRad);
+                case Velocity velocity -> {
+                    float strength = velocity.strength;
+                    if (dx != 0 || dz != 0) {
+                        double yawRad = Math.toRadians(yaw + 90);
+                        double yawUnitX = Math.cos(yawRad);
+                        double yawUnitZ = Math.sin(yawRad);
 
-                    // Magic numbers are the best numbers
-                    double cameraX = dx * strength + 1.28f * yawUnitX * (100 - strength);
-                    double cameraZ = dz * strength + 1.28f * yawUnitZ * (100 - strength);
+                        // Magic numbers are the best numbers
+                        double cameraX = dx * strength + 1.28f * yawUnitX * (100 - strength);
+                        double cameraZ = dz * strength + 1.28f * yawUnitZ * (100 - strength);
 
-                    yaw = (float) Math.toDegrees(Math.atan2(cameraZ, cameraX)) - 90;
+                        yaw = (float) Math.toDegrees(Math.atan2(cameraZ, cameraX)) - 90;
+                    }
+                    yaw = AngleUtil.lerp(strength / 100f, previousYaw, yaw);
                 }
-                yaw = AngleUtil.lerp(strength / 100f, previousYaw, yaw);
             }
         }
-
-//        float directionOffset = 0f;
-//        if (getConfig().snapSidewaysView) {
-//            if (lookLeft) {
-//                yaw -= 90f;
-//            } else if (lookRight) {
-//                yaw += 90f;
-//            } else {
-//                if (dx != 0 || dz != 0) {
-//                    float vel = (float) Math.hypot(dz, dx);
-//                    float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
-//                    float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-//                    yaw = AngleUtil.lerp(t, yaw, direction);
-//                }
-//                yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
-//            }
-//        } else {
-//            if (lookLeft) {
-//                yaw -= 90f;
-//                directionOffset = -90f;
-//            } else if (lookRight) {
-//                yaw += 90f;
-//                directionOffset = 90f;
-//            }
-//
-//            if (dx != 0 || dz != 0) {
-//                float vel = (float) Math.hypot(dz, dx);
-//                float direction = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
-//                float t = Math.min(1, vel / 3); // max 70 m/s = 3.5 m/tick on blue ice, cut off at 3
-//                yaw = AngleUtil.lerp(t, yaw, direction + directionOffset);
-//            }
-//            yaw = AngleUtil.lerp(getConfig().getSmoothness(), previousYaw, yaw);
-//        }
 
         previousYaw = yaw;
         prevBoatPos = boat.position();

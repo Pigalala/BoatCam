@@ -60,7 +60,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		}
 
 		if (keybinds.menu().consumeClick()) {
-			client.gui.setScreen(new BoatCamConfigScreen(client.gui.screen()).screen);
+			client.gui.setScreen(new BoatCamConfigScreen(client.gui.screen()));
 			return;
 		}
 

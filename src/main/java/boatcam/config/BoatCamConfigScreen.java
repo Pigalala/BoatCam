@@ -5,6 +5,7 @@ import boatcam.yaw.mode.YawMode;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
+import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.impl.controller.DropdownStringControllerBuilderImpl;
 import dev.isxander.yacl3.impl.controller.TickBoxControllerBuilderImpl;
 import net.minecraft.client.Minecraft;
@@ -14,14 +15,10 @@ import net.minecraft.network.chat.Component;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class BoatCamConfigScreen {
-
-    private final Screen parent;
-    public Screen screen;
+public class BoatCamConfigScreen extends YACLScreen {
 
     public BoatCamConfigScreen(Screen parent) {
-        this.parent = parent;
-        this.screen = createConfig().generateScreen(parent);
+        super(createConfig(), parent);
     }
 
     static Option<Boolean> boatModeOption() {
@@ -113,7 +110,7 @@ public class BoatCamConfigScreen {
                 .build();
     }
 
-    YetAnotherConfigLib createConfig() {
+    static YetAnotherConfigLib createConfig() {
         var categoryBuilder = ConfigCategory.createBuilder()
                 .name(Component.literal("BoatCam"))
                 .option(yawModeOption());

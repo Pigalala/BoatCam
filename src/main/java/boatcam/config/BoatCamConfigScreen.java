@@ -1,9 +1,8 @@
 package boatcam.config;
 
-import dev.isxander.yacl3.api.ConfigCategory;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.OptionDescription;
-import dev.isxander.yacl3.api.YetAnotherConfigLib;
+import boatcam.yaw.mode.Velocity;
+import boatcam.yaw.mode.YawMode;
+import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import dev.isxander.yacl3.gui.YACLScreen;
@@ -17,31 +16,6 @@ public class BoatCamConfigScreen extends YACLScreen {
         super(createConfig(), parent);
     }
 
-    static YetAnotherConfigLib createConfig() {
-        return YetAnotherConfigLib.createBuilder()
-                .title(Component.literal("BoatCam"))
-                .category(ConfigCategory.createBuilder()
-                        .name(Component.literal("BoatCam"))
-                        .option(boatModeOption())
-                        .option(smoothnessOption())
-                        .option(fixedPitchOption())
-                        .option(pitchOption())
-                        .option(stationaryLookAroundOption())
-                        .option(perspectiveOption())
-                        .option(turnLimitDisabled())
-                        .option(snapToSidewaysViewOption())
-                        .build()
-                )
-                .save(() -> {
-                    try {
-                        BoatCamConfig.getConfig().save();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e); // :P
-                    }
-                })
-                .build();
-    }
-
     static Option<Boolean> boatModeOption() {
         return Option.<Boolean>createBuilder()
                 .name(Component.literal("Boat Mode"))
@@ -51,16 +25,22 @@ public class BoatCamConfigScreen extends YACLScreen {
                 .build();
     }
 
-    static Option<Integer> smoothnessOption() {
-        return Option.<Integer>createBuilder()
-                .name(Component.literal("Smoothness"))
-                .description(OptionDescription.of(Component.literal("1 - Smooth camera, might even lag behind.\n100 - Camera angle might change very abruptly.")))
-                .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                        .range(1, 100)
-                        .formatValue(val -> Component.literal(String.valueOf(val)))
-                        .step(1)
+    static Option<Class<? extends YawMode>> yawModeOption() {
+        return Option.<Class<? extends YawMode>>createBuilder()
+                .name(Component.literal("Yaw mode"))
+                .description(OptionDescription.of(
+                        Component.literal("How the yaw should be calculated in boat mode"),
+                        Component.literal("Legacy - The yaw tends towards the direction the boat is facing"),
+                        Component.literal("Velocity - The yaw follows the velocity of the boat")
+                ))
+                .customController(op ->
+                        new IterableCyclingController<>(op, YawMode.MODES.values(), mode -> Component.literal(YawMode.typeName(mode)))
                 )
-                .binding(50, () -> BoatCamConfig.getConfig().smoothness, val -> BoatCamConfig.getConfig().smoothness = val)
+                .binding(
+                        Velocity.class,
+                        () -> YawMode.MODES.get(BoatCamConfig.getConfig().getSelectedYawModeName()),
+                        mode -> BoatCamConfig.getConfig().setSelectedYawModeName(YawMode.typeName(mode))
+                )
                 .build();
     }
 
@@ -116,12 +96,35 @@ public class BoatCamConfigScreen extends YACLScreen {
                 .build();
     }
 
-    static Option<Boolean> snapToSidewaysViewOption() {
-        return Option.<Boolean>createBuilder()
-                .name(Component.literal("Snap Sideways View"))
-                .description(OptionDescription.of(Component.literal("Whether looking sideways via keybind should be subject to smoothing or not")))
-                .controller(TickBoxControllerBuilderImpl::new)
-                .binding(true, () -> BoatCamConfig.getConfig().snapSidewaysView, val -> BoatCamConfig.getConfig().snapSidewaysView = val)
+    static YetAnotherConfigLib createConfig() {
+        var categoryBuilder = ConfigCategory.createBuilder()
+                .name(Component.literal("BoatCam"))
+                .option(yawModeOption());
+
+        for (YawMode yawMode : BoatCamConfig.getConfig().yawModes.values()) {
+            categoryBuilder.group(yawMode.createOptions());
+        }
+
+        categoryBuilder.group(OptionGroup.createBuilder()
+                .option(boatModeOption())
+                .option(fixedPitchOption())
+                .option(pitchOption())
+                .option(stationaryLookAroundOption())
+                .option(perspectiveOption())
+                .option(turnLimitDisabled())
+                .build()
+        );
+
+        return YetAnotherConfigLib.createBuilder()
+                .title(Component.literal("BoatCam"))
+                .category(categoryBuilder.build())
+                .save(() -> {
+                    try {
+                        BoatCamConfig.getConfig().save();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e); // :P
+                    }
+                })
                 .build();
     }
 }

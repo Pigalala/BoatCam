@@ -1,0 +1,35 @@
+package boatcam.yaw.mode;
+
+import boatcam.yaw.ModeId;
+import com.google.gson.annotations.Expose;
+import dev.isxander.yacl3.api.Option;
+import dev.isxander.yacl3.api.OptionDescription;
+import dev.isxander.yacl3.api.OptionGroup;
+import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
+import net.minecraft.network.chat.Component;
+
+@ModeId("directional")
+public final class Directional implements YawMode {
+
+    @Expose
+    public int smoothness = 50;
+
+    @Override
+    public OptionGroup createOptions() {
+        return OptionGroup.createBuilder()
+                .name(Component.literal("Directional mode options"))
+                .option(
+                        Option.<Integer>createBuilder()
+                                .name(Component.literal("Smoothness"))
+                                .description(OptionDescription.of(Component.literal("1 - Smooth camera, might even lag behind.\n100 - Camera angle might change very abruptly.")))
+                                .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                                        .range(1, 100)
+                                        .formatValue(val -> Component.literal(String.valueOf(val)))
+                                        .step(1)
+                                )
+                                .binding(50, () -> smoothness, val -> smoothness = val)
+                                .build()
+                )
+                .build();
+    }
+}

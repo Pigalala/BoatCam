@@ -20,7 +20,7 @@ public class BoatEntityMixin {
             cancellable = true
     )
     private void clampRotation(Entity entity, CallbackInfo info) {
-        if (entity.equals(Minecraft.getInstance().player) && getConfig().isTurnLimitDisabled()) {
+        if (entity == Minecraft.getInstance().player && getConfig().isTurnLimitDisabled()) {
             float yaw = ((Entity) (Object) this).getYRot();
             entity.setYBodyRot(yaw);
             entity.setYHeadRot(entity.getYRot());

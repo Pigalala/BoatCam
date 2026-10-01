@@ -1,9 +1,17 @@
 package boatcam.config;
 
-import com.google.gson.Gson;
-import java.io.IOException;
+import boatcam.BoatCamMod;
+import boatcam.yaw.YawModeMapAdapter;
+import boatcam.yaw.mode.Directional;
+import boatcam.yaw.mode.Velocity;
+import boatcam.yaw.mode.YawMode;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 public final class BoatCamConfig {
 
@@ -11,28 +19,80 @@ public final class BoatCamConfig {
 
     private static final Path CONFIG_PATH = Path.of("config", "boatcam.json5");
 
+    @Expose
     public boolean boatMode = true;
+    @Expose
     public boolean stationaryLookAround = true;
-    public int smoothness = 50;
+    @Expose
     public Perspective perspective = Perspective.THIRD_PERSON;
+    @Expose
     public boolean fixedPitch = false;
+    @Expose
     public int pitch = 25;
+    @Expose
     public boolean turnLimitDisabled = true;
-    public boolean snapSidewaysView = false;
+    @Expose
+    public String selectedYawMode;
+    @Expose
+    @JsonAdapter(YawModeMapAdapter.class)
+    public Map<String, YawMode> yawModes = new Object2ObjectArrayMap<>();
+
+    // Now a legacy option, store for migration
+    @Expose(serialize = false)
+    public Integer smoothness;
+
+    /// Currently selected yaw mode
+    public YawMode cachedYawMode;
 
     private BoatCamConfig() {}
 
     public void validatePostLoad() {
-        smoothness = Math.clamp(smoothness, 1, 100);
         pitch = Math.clamp(pitch, -90, 90);
 
         if (perspective == null) {
             perspective = Perspective.THIRD_PERSON;
         }
+
+        if (selectedYawMode == null) {
+            if (smoothness == null) {
+                var mode = new Velocity();
+                yawModes.put(mode.typeName(), mode);
+                selectedYawMode = mode.typeName();
+            } else {
+                // Poopy migration
+                var mode = new Directional();
+                mode.smoothness = Math.clamp(smoothness, 0, 100);
+                yawModes.put(mode.typeName(), mode);
+                selectedYawMode = mode.typeName();
+            }
+        }
+
+        // We want to make sure the yawModes map is always full
+        for (Class<? extends YawMode> yawMode : YawMode.MODES.values()) {
+            yawModes.putIfAbsent(YawMode.typeName(yawMode), YawMode.newYawModeFromType(yawMode));
+        }
+
+        cachedYawMode = getYawMode();
+
+        save();
     }
 
-    public float getSmoothness() {
-        return smoothness / 100f;
+    public String getSelectedYawModeName() {
+        return selectedYawMode;
+    }
+
+    public void setSelectedYawModeName(String name) {
+        this.selectedYawMode = name;
+        cachedYawMode = getYawMode();
+    }
+
+    private YawMode getYawMode() {
+        YawMode mode = BoatCamConfig.getConfig().yawModes.get(BoatCamConfig.getConfig().selectedYawMode);
+        if (mode == null) {
+            mode = new Velocity();
+            BoatCamConfig.getConfig().yawModes.put(mode.typeName(), mode);
+        }
+        return mode;
     }
 
     public void toggleBoatMode() {
@@ -58,21 +118,32 @@ public final class BoatCamConfig {
                 Files.createFile(CONFIG_PATH);
             }
 
-            var gson = new Gson();
-            Files.writeString(CONFIG_PATH, gson.toJson(this));
+            Files.writeString(CONFIG_PATH, BoatCamMod.GSON.toJson(this));
         } catch (Exception e) {
             System.err.println("Could not write config: " + e.getMessage());
         }
     }
 
-    public static void load() throws IOException {
+    public static void load() {
         if (Files.notExists(CONFIG_PATH)) {
             INSTANCE = new BoatCamConfig();
+            INSTANCE.validatePostLoad();
             return;
         }
 
-        var gson = new Gson();
-        INSTANCE = gson.fromJson(Files.readString(CONFIG_PATH), BoatCamConfig.class);
+        BoatCamConfig config;
+        try {
+            config = BoatCamMod.GSON.fromJson(Files.readString(CONFIG_PATH), BoatCamConfig.class);
+
+            if (config == null) {
+                throw new RuntimeException("config invalid");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            config = new BoatCamConfig();
+        }
+
+        INSTANCE = config;
         INSTANCE.validatePostLoad();
     }
 

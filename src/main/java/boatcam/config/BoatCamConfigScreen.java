@@ -6,14 +6,9 @@ import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import dev.isxander.yacl3.gui.YACLScreen;
-import dev.isxander.yacl3.impl.controller.DropdownStringControllerBuilderImpl;
 import dev.isxander.yacl3.impl.controller.TickBoxControllerBuilderImpl;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 public class BoatCamConfigScreen extends YACLScreen {
 
@@ -101,15 +96,6 @@ public class BoatCamConfigScreen extends YACLScreen {
                 .build();
     }
 
-    static Option<Boolean> snapToSidewaysViewOption() {
-        return Option.<Boolean>createBuilder()
-                .name(Component.literal("Snap Sideways View"))
-                .description(OptionDescription.of(Component.literal("Whether looking sideways via keybind should be subject to smoothing or not")))
-                .controller(TickBoxControllerBuilderImpl::new)
-                .binding(true, () -> BoatCamConfig.getConfig().snapSidewaysView, val -> BoatCamConfig.getConfig().snapSidewaysView = val)
-                .build();
-    }
-
     static YetAnotherConfigLib createConfig() {
         var categoryBuilder = ConfigCategory.createBuilder()
                 .name(Component.literal("BoatCam"))
@@ -126,7 +112,6 @@ public class BoatCamConfigScreen extends YACLScreen {
                 .option(stationaryLookAroundOption())
                 .option(perspectiveOption())
                 .option(turnLimitDisabled())
-                .option(snapToSidewaysViewOption())
                 .build()
         );
 

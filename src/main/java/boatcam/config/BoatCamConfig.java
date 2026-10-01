@@ -5,12 +5,10 @@ import boatcam.yaw.YawModeMapAdapter;
 import boatcam.yaw.mode.Directional;
 import boatcam.yaw.mode.Velocity;
 import boatcam.yaw.mode.YawMode;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -33,8 +31,6 @@ public final class BoatCamConfig {
     public int pitch = 25;
     @Expose
     public boolean turnLimitDisabled = true;
-    @Expose
-    public boolean snapSidewaysView = false;
     @Expose
     public String selectedYawMode;
     @Expose

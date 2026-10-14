@@ -15,15 +15,20 @@ public final class Velocity implements YawMode {
     public int strength = 50;
 
     @Override
+    public void validate() {
+        strength = Math.clamp(strength, 1, 100);
+    }
+
+    @Override
     public OptionGroup createOptions() {
         return OptionGroup.createBuilder()
                 .name(Component.literal("Velocity mode options"))
                 .option(
                         Option.<Integer>createBuilder()
                                 .name(Component.literal("Strength"))
-                                .description(OptionDescription.of(Component.literal("0 - Camera feels super lazy.\n100 - Camera follows boat velocity tightly.")))
+                                .description(OptionDescription.of(Component.literal("1 - Camera feels super lazy.\n100 - Camera follows boat velocity tightly.")))
                                 .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                                        .range(0, 100)
+                                        .range(1, 100)
                                         .formatValue(val -> Component.literal(String.valueOf(val)))
                                         .step(1)
                                 )

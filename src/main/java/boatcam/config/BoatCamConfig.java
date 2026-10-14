@@ -52,6 +52,10 @@ public final class BoatCamConfig {
             perspective = Perspective.THIRD_PERSON;
         }
 
+        if (yawModes == null) {
+            yawModes = new Object2ObjectArrayMap<>();
+        }
+
         if (selectedYawMode == null) {
             if (smoothness == null) {
                 var mode = YawMode.newYawModeFromType(YawMode.DEFAULT);
@@ -60,7 +64,7 @@ public final class BoatCamConfig {
             } else {
                 // Poopy migration
                 var mode = new Directional();
-                mode.smoothness = Math.clamp(smoothness, 0, 100);
+                mode.smoothness = Math.clamp(smoothness, 1, 100);
                 yawModes.put(mode.typeName(), mode);
                 selectedYawMode = mode.typeName();
             }
@@ -70,6 +74,8 @@ public final class BoatCamConfig {
         for (Class<? extends YawMode> yawMode : YawMode.MODES.values()) {
             yawModes.putIfAbsent(YawMode.typeName(yawMode), YawMode.newYawModeFromType(yawMode));
         }
+
+        yawModes.values().forEach(YawMode::validate);
 
         if (!YawMode.MODES.containsKey(selectedYawMode)) {
             selectedYawMode = YawMode.typeName(YawMode.DEFAULT);

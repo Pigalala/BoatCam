@@ -15,6 +15,11 @@ public final class Directional implements YawMode {
     public int smoothness = 50;
 
     @Override
+    public void validate() {
+        smoothness = Math.clamp(smoothness, 1, 100);
+    }
+
+    @Override
     public OptionGroup createOptions() {
         return OptionGroup.createBuilder()
                 .name(Component.literal("Directional mode options"))

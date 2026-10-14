@@ -20,6 +20,10 @@ public class YawModeMapAdapter implements JsonSerializer<Map<String, YawMode>>, 
             }
 
             YawMode mode = context.deserialize(entry.getValue(), yawModeType);
+            if (mode == null) {
+                continue;
+            }
+
             result.put(key, mode);
         }
         return result;

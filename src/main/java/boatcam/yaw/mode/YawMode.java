@@ -15,6 +15,8 @@ public sealed interface YawMode permits Directional, Velocity {
 
     OptionGroup createOptions();
 
+    default void validate() {}
+
     default String typeName() {
         return typeName(getClass());
     }

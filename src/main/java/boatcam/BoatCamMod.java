@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.CameraType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -60,13 +59,13 @@ public final class BoatCamMod implements ClientModInitializer {
 		}
 
 		if (keybinds.menu().consumeClick()) {
-			client.gui.setScreen(new BoatCamConfigScreen(client.gui.screen()));
+			client.setScreen(new BoatCamConfigScreen(client.screen));
 			return;
 		}
 
 		if (keybinds.toggle().consumeClick()) {
 			getConfig().toggleBoatMode();
-			client.gui.hud.setOverlayMessage(Component.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").withStyle(s -> s.withColor(GREEN)), false);
+			client.gui.setOverlayMessage(Component.literal(getConfig().boatMode ? "Boat mode" : "Normal mode").withStyle(s -> s.withColor(GREEN)), false);
 		}
 
 		tickActiveCam(client);

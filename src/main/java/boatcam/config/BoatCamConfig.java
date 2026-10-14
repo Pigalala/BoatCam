@@ -71,6 +71,10 @@ public final class BoatCamConfig {
             yawModes.putIfAbsent(YawMode.typeName(yawMode), YawMode.newYawModeFromType(yawMode));
         }
 
+        if (!YawMode.MODES.containsKey(selectedYawMode)) {
+            selectedYawMode = YawMode.typeName(YawMode.DEFAULT);
+        }
+
         cachedYawMode = getYawMode();
 
         save();
@@ -81,17 +85,17 @@ public final class BoatCamConfig {
     }
 
     public void setSelectedYawModeName(String name) {
+        if (!YawMode.MODES.containsKey(name)) {
+            return;
+        }
+
         this.selectedYawMode = name;
         cachedYawMode = getYawMode();
     }
 
     private YawMode getYawMode() {
-        YawMode mode = BoatCamConfig.getConfig().yawModes.get(BoatCamConfig.getConfig().selectedYawMode);
-        if (mode == null) {
-            mode = YawMode.newYawModeFromType(YawMode.DEFAULT);
-            BoatCamConfig.getConfig().yawModes.put(mode.typeName(), mode);
-        }
-        return mode;
+        Class<? extends YawMode> type = YawMode.MODES.get(selectedYawMode);
+        return yawModes.computeIfAbsent(selectedYawMode, key -> YawMode.newYawModeFromType(type));
     }
 
     public void toggleBoatMode() {

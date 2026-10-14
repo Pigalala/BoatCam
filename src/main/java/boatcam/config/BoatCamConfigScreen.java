@@ -1,6 +1,5 @@
 package boatcam.config;
 
-import boatcam.yaw.mode.Directional;
 import boatcam.yaw.mode.YawMode;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
@@ -37,7 +36,7 @@ public class BoatCamConfigScreen extends YACLScreen {
                         new IterableCyclingController<>(op, YawMode.MODES.values(), mode -> Component.literal(YawMode.typeName(mode)))
                 )
                 .binding(
-                        Directional.class,
+                        YawMode.DEFAULT,
                         () -> YawMode.MODES.get(BoatCamConfig.getConfig().getSelectedYawModeName()),
                         mode -> BoatCamConfig.getConfig().setSelectedYawModeName(YawMode.typeName(mode))
                 )

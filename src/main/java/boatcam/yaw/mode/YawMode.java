@@ -11,6 +11,8 @@ public sealed interface YawMode permits Directional, Velocity {
 
     Map<String, Class<? extends YawMode>> MODES = createModesMap();
 
+    Class<? extends YawMode> DEFAULT = Directional.class;
+
     OptionGroup createOptions();
 
     default String typeName() {

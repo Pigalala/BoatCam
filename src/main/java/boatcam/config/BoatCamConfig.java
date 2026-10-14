@@ -3,7 +3,6 @@ package boatcam.config;
 import boatcam.BoatCamMod;
 import boatcam.yaw.YawModeMapAdapter;
 import boatcam.yaw.mode.Directional;
-import boatcam.yaw.mode.Velocity;
 import boatcam.yaw.mode.YawMode;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
@@ -55,7 +54,7 @@ public final class BoatCamConfig {
 
         if (selectedYawMode == null) {
             if (smoothness == null) {
-                var mode = new Velocity();
+                var mode = YawMode.newYawModeFromType(YawMode.DEFAULT);
                 yawModes.put(mode.typeName(), mode);
                 selectedYawMode = mode.typeName();
             } else {
@@ -89,7 +88,7 @@ public final class BoatCamConfig {
     private YawMode getYawMode() {
         YawMode mode = BoatCamConfig.getConfig().yawModes.get(BoatCamConfig.getConfig().selectedYawMode);
         if (mode == null) {
-            mode = new Velocity();
+            mode = YawMode.newYawModeFromType(YawMode.DEFAULT);
             BoatCamConfig.getConfig().yawModes.put(mode.typeName(), mode);
         }
         return mode;

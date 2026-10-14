@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.CameraType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -48,6 +47,7 @@ public final class BoatCamMod implements ClientModInitializer {
 		this.keybinds = new BoatCamKeybinds(keyBindingCategory);
 
 		ClientTickEvents.START_CLIENT_TICK.register(this::tick);
+		ClientTickEvents.END_CLIENT_TICK.register(this::endTick);
 	}
 
 	public BoatCamKeybinds getKeybinds() {
@@ -72,6 +72,12 @@ public final class BoatCamMod implements ClientModInitializer {
 		tickActiveCam(client);
 	}
 
+	void endTick(Minecraft client) {
+		if (client.player != null && activeCam != null && !activeCam.shouldExit()) {
+			activeCam.endTick();
+		}
+	}
+
 	void tickActiveCam(Minecraft client) {
 		if (activeCam != null) {
 			if (activeCam.shouldExit()) {
@@ -79,7 +85,7 @@ public final class BoatCamMod implements ClientModInitializer {
 				activeCam = null;
 				tickActiveCam(client); // Check for new mode instantly to prevent weird camera things
 			} else {
-				activeCam.tick();
+				activeCam.startTick();
 			}
 		} else {
 			if (getConfig().boatMode && client.player.getVehicle() instanceof AbstractBoat boat) {
@@ -90,7 +96,7 @@ public final class BoatCamMod implements ClientModInitializer {
 			}
 
             activeCam.enable();
-            activeCam.tick();
+            activeCam.startTick();
         }
 	}
 

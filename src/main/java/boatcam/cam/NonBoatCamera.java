@@ -38,7 +38,7 @@ public class NonBoatCamera implements BoatCam {
     }
 
     @Override
-    public void tick() {
+    public void startTick() {
         BoatCamKeybinds keybinds = BoatCamMod.instance().getKeybinds();
         setLookingBehind(keybinds.lookBehind().isDown());
     }

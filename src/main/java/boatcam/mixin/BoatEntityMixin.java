@@ -1,15 +1,14 @@
 package boatcam.mixin;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static boatcam.config.BoatCamConfig.getConfig;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static boatcam.config.BoatCamConfig.getConfig;
 
 @Mixin(AbstractBoat.class)
 public class BoatEntityMixin {
@@ -19,12 +18,12 @@ public class BoatEntityMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void clampRotation(Entity entity, CallbackInfo info) {
-        if (entity == Minecraft.getInstance().player && getConfig().isTurnLimitDisabled()) {
+    private void clampRotation(Entity passenger, CallbackInfoReturnable<Float> cir) {
+        if (passenger == Minecraft.getInstance().player && getConfig().isTurnLimitDisabled()) {
             float yaw = ((Entity) (Object) this).getYRot();
-            entity.setYBodyRot(yaw);
-            entity.setYHeadRot(entity.getYRot());
-            info.cancel();
+            passenger.setYBodyRot(yaw);
+            passenger.setYHeadRot(passenger.getYRot());
+            cir.setReturnValue(0f);
         }
     }
 }

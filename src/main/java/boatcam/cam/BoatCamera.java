@@ -22,6 +22,9 @@ public class BoatCamera implements BoatCam {
     private Vec3 prevBoatPos;
     private float previousYaw;
     private boolean lookingBehind;
+    private boolean yawInitialized;
+    private boolean wasLookingLeft;
+    private boolean wasLookingRight;
 
     public BoatCamera(LocalPlayer player, AbstractBoat boat) {
         this.player = player;
@@ -53,23 +56,41 @@ public class BoatCamera implements BoatCam {
         }
     }
 
-    public void tick() {
+    public void startTick() {
         BoatCamKeybinds keybinds = BoatCamMod.instance().getKeybinds();
 
         overrideCamera = BoatCamMod.instance().shouldOverrideCamera(boat);
 
         if (overrideCamera) {
-            updateYaw();
             updatePitch();
         }
 
         setLookingBehind(keybinds.lookBehind().isDown());
     }
 
+    @Override
+    public void endTick() {
+        if (overrideCamera) {
+            updateYaw();
+        } else {
+            yawInitialized = false;
+        }
+    }
+
     void updateYaw() {
         BoatCamKeybinds keybinds = BoatCamMod.instance().getKeybinds();
-        float yaw = calculateYaw(keybinds.lookLeft().isDown(), keybinds.lookRight().isDown());
+        boolean lookLeft = keybinds.lookLeft().isDown();
+        boolean lookRight = keybinds.lookRight().isDown();
+        float yaw = calculateYaw(lookLeft, lookRight);
         player.setYRot(yaw);
+
+        if (!yawInitialized || lookLeft != wasLookingLeft || lookRight != wasLookingRight) {
+            player.yRotO = yaw;
+        }
+
+        yawInitialized = true;
+        wasLookingLeft = lookLeft;
+        wasLookingRight = lookRight;
     }
 
     void updatePitch() {

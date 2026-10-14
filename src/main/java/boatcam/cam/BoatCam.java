@@ -6,7 +6,9 @@ public interface BoatCam {
 
     void disable();
 
-    void tick();
+    void startTick();
+
+    default void endTick() {}
 
     boolean isOverrideCamera();
 

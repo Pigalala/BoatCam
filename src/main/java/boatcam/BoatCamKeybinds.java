@@ -15,10 +15,10 @@ public record BoatCamKeybinds(
     public BoatCamKeybinds(KeyMapping.Category category) {
         this(
                 KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.menu", InputConstants.KEY_B, category)),
-                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.toggle", -1, category)),
-                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookbehind", -1, category)),
-                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookleft", -1, category)),
-                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookright", -1, category))
+                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.toggle", InputConstants.UNKNOWN.getValue(), category)),
+                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookbehind", InputConstants.UNKNOWN.getValue(), category)),
+                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookleft", InputConstants.UNKNOWN.getValue(), category)),
+                KeyMappingHelper.registerKeyMapping(new KeyMapping("key.boatcam.lookright", InputConstants.UNKNOWN.getValue(), category))
         );
     }
 }

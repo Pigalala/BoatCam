@@ -176,6 +176,6 @@ public class BoatCamera implements BoatCam {
 
     @Override
     public boolean shouldExit() {
-        return !getConfig().boatMode || !(player.getVehicle() instanceof AbstractBoat);
+        return !getConfig().boatMode || player != Minecraft.getInstance().player || player.getVehicle() != boat;
     }
 }

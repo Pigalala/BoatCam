@@ -50,7 +50,7 @@ public class NonBoatCamera implements BoatCam {
 
     @Override
     public boolean shouldExit() {
-        return getConfig().boatMode && player.getVehicle() instanceof AbstractBoat;
+        return player != Minecraft.getInstance().player || getConfig().boatMode && player.getVehicle() instanceof AbstractBoat;
     }
 
     void invertPitch() {
